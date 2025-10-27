@@ -1,0 +1,440 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<unload unload_date="2025-10-25 11:46:14">
+<sys_script_include action="INSERT_OR_UPDATE">
+<access>public</access>
+<active>true</active>
+<api_name>global.ScriptConsoleG</api_name>
+<caller_access/>
+<client_callable>false</client_callable>
+<description>Global dependencies for the script console application....</description>
+<mobile_callable>false</mobile_callable>
+<name>ScriptConsoleG</name>
+<sandbox_callable>false</sandbox_callable>
+<script><![CDATA[var ScriptConsoleG = Class.create();
+ScriptConsoleG.prototype = {
+  initialize: function () {
+    this.$sp = new global.GlideSPScriptable();
+  },
+
+  getGlideForm: function (table, guid, qry, view) {
+    return this.$sp.getForm(table, guid, qry, view);
+  },
+
+  getUserDateFormat: function () {
+    return gs.getSession().getUser().getDateFormat();
+  },
+
+  getGlobalGr: function (table, initialise, workflow, sysFields, secure) {
+    const gr = secure ? new GlideRecordSecure(table) : new GlideRecord(table);
+    if (initialise) gr.initialize();
+    if (workflow) gr.setWorkflow(false);
+    if (sysFields) gr.autoSysFields(false);
+    return gr;
+  },
+
+  getGlobalGa: function (table) {
+    return new GlideAggregate(table);
+  },
+
+  grMethod: function (gr, fn, params) {
+    return gr[fn].apply(gr, params);
+  },
+
+  revertVersion: function (versionId) {
+    return new GlideappUpdateVersion().revert(versionId);
+  },
+
+  getCurrentScope: function () {
+    return {
+      value: gs.getCurrentApplicationId(),
+      name: gs.getCurrentApplicationName()
+    };
+  },
+
+  setCurrentScope: function (appScope) {
+    const updated = gs.setCurrentApplicationId(appScope);
+    if (!updated) return null;
+
+    return this.refreshScope();
+  },
+
+  getCurrentUpdateSet: function () {
+    const setId = new GlideUpdateSet().get();
+    const grSet = new GlideRecord('sys_update_set');
+    if (!grSet.get(setId)) return null;
+
+    return {
+      value: j2js(setId),
+      name: grSet.getDisplayValue(),
+      state: grSet.getValue('state')
+    };
+  },
+
+  setCurrentUpdateSet: function (updateSet) {
+    let updated = false;
+    const gus = new GlideUpdateSet();
+
+    if (!updateSet) {
+      const scopeDefault = gus.getDefault();
+      gus.set(scopeDefault);
+      updated = gus.get() == scopeDefault();
+    } else {
+      gus.set(updateSet);
+      updated = gus.get() == updateSet;
+    }
+
+    return updated ? this.getCurrentUpdateSet() : null;
+  },
+
+  refreshScope: function () {
+    return {
+      scope: this.getCurrentScope(),
+      updateSet: this.getCurrentUpdateSet()
+    };
+  },
+
+  getSimpleCount(table, query) {
+    const ga = new GlideAggregate(table);
+    if (query) ga.addQuery(query);
+    ga.addAggregate('COUNT');
+    ga.query();
+
+    return ga.next() ? +ga.getAggregate('COUNT') : 0;
+  },
+
+  getUserViaUsername(username) {
+    const grUser = new GlideRecord('sys_user');
+    return grUser.get('user_name', username) ? grUser : false;
+  },
+
+  getFormattedDate(gdtValue, format) {
+    const gdt = new GlideDateTime(gdtValue);
+    const userDate = gdt.getDisplayValueInternal().split(' ')[0];
+
+    const gd = new GlideDate();
+    gd.setValue(userDate);
+
+    if (format === 'display') return gd.getDisplayValue();
+
+    return gd.getByFormat(format || 'dd MMM, yyyy');
+  },
+
+  getLastUpdated(gr, format) {
+    const grUser = this.getUserViaUsername(gr.getValue('sys_updated_by'));
+    const updated =
+      format === 'displayTime'
+        ? gr.getDisplayValue('sys_updated_on')
+        : this.getFormattedDate(gr.getValue('sys_updated_on'));
+
+    if (grUser) {
+      const initials = grUser.getValue('first_name').charAt(0) + grUser.getValue('last_name').charAt(0);
+
+      return {
+        initials,
+        updated,
+        guid: grUser.getUniqueValue(),
+        name: grUser.getDisplayValue('name'),
+        photo: grUser.getDisplayValue('avatar') || grUser.getDisplayValue('photo')
+      };
+    }
+
+    return { updated };
+  },
+
+  getScriptData: function (table, guid, field) {
+    const gr = new GlideRecordSecure(table);
+    if (!gr.get(guid)) return null;
+
+    const scopeChange = this.autoScopeSwitch(gr);
+
+    return {
+      scopeChange,
+      script: gr.getValue(field) || '',
+      canWrite: gr[field].canWrite(),
+      esVersion: this.getEsMode(gr, table, guid),
+      metadata: {
+        table,
+        guid,
+        field,
+        scope: gr.sys_scope.name,
+        display: gr.getDisplayValue(),
+        updater: this.getLastUpdated(gr, 'displayTime'),
+        type: gr[field].getED().getInternalType()
+      }
+    };
+  },
+
+  autoScopeSwitch: function (gr) {
+    var scopeChange;
+
+    if (gs.getPreference('script_console.scope_switch') === 'true') {
+      const scope = gr.sys_scope.toString();
+      scopeChange = this.setCurrentScope(scope);
+    }
+
+    return scopeChange || undefined;
+  },
+
+  getTableData: function (gr, page, pageSize, query) {
+    const gUser = gs.getUser();
+    const table = gr.getTableName();
+    const userTableView = gUser.getPreference(`${table}_list.view`) || '';
+
+    let fields = this.getListFields(table, userTableView, gUser.getID());
+
+    gr.initialize();
+    fields = fields
+      .filter(f => f.element && !f.element.startsWith('.'))
+      .map(f => ({
+        name: f.element,
+        label: gr[f.element].getLabel()
+      }));
+
+    const grRecord = new GlideRecordSecure(table);
+    if (query) grRecord.addEncodedQuery(query);
+    grRecord.chooseWindow(page * pageSize, (page + 1) * pageSize);
+    grRecord.query();
+
+    const records = [];
+    while (grRecord.next()) {
+      const guid = grRecord.getUniqueValue();
+      const item = {
+        sys_id: {
+          value: guid,
+          display_value: guid
+        }
+      };
+
+      fields.forEach(f => {
+        item[f.name] = {
+          value: grRecord.getValue(f.name) || '',
+          display_value: grRecord.getDisplayValue(f.name) || ''
+        };
+      });
+      records.push(item);
+    }
+
+    const config = {
+      hasTextIndex: this.$sp.hasTextIndex(table),
+      displayField: grRecord.getDisplayName(),
+      tableLabel: gr.getClassDisplayValue()
+    };
+
+    return {
+      fields,
+      records,
+      config,
+      totalCount: this.getSimpleCount(table, query)
+    };
+  },
+
+  getListFields: function (table, userTableView, userId) {
+    const grList = new GlideRecord('sys_ui_list');
+    grList.addQuery('name', table);
+    grList.addQuery('view.name', userTableView);
+    grList.addQuery('sys_user', userId).addOrCondition('sys_user', '');
+    grList.addNullQuery('parent');
+    grList.orderByDesc('sys_user');
+    grList.setLimit(1);
+    grList.query();
+
+    const listId = grList.next() ? grList.getUniqueValue() : '';
+    if (!listId) {
+      const grDb = new GlideRecord('sys_db_object');
+      if (!grDb.get('name', table)) return null;
+
+      const parent = grDb.super_class.name.getValue();
+      if (!parent) return null;
+
+      return this.getListFields(parent, userTableView, userId);
+    }
+
+    const grElement = new GlideRecord('sys_ui_list_element');
+
+    if (listId) {
+      grElement.addQuery('list_id', listId);
+    } else {
+      grElement.addQuery('list_id.name', table);
+      grElement.addQuery('list_id.parent', '');
+      grElement.addQuery('list_id.sys_user', '');
+      grElement.addQuery('list_id.view.name', '');
+    }
+
+    grElement.orderBy('position');
+    grElement.query();
+
+    let fields = [];
+    while (grElement.next()) {
+      fields.push({
+        element: grElement.getValue('element'),
+        position: grElement.getValue('position')
+      });
+    }
+
+    return fields;
+  },
+
+  getReferenceDisplay: function (table) {
+    var gr = new GlideRecord(table);
+    return gr.getDisplayName();
+  },
+
+  getActivityData: function (table, guid, instance) {
+    const meta = this.getSpScriptable().getStream(table, guid);
+    const jFields = meta.journal_fields;
+    const readable = jFields.filter(f => f.can_read).map(f => f.name);
+    const writeable = jFields.filter(f => f.can_write).map(f => f.name);
+    let entries = meta.entries.filter(f => !!f.value);
+
+    const userImgMap = {};
+    const grUser = new GlideRecord('sys_user');
+    entries = entries.map(e => {
+      if (userImgMap[e.user_sys_id]) {
+        e.user_img = userImgMap[e.user_sys_id];
+      } else if (grUser.get(e.user_sys_id)) {
+        const userImg = grUser.getDisplayValue('avatar') || grUser.getDisplayValue('photo');
+        if (!userImg) return e;
+
+        const photo = instance + userImg;
+        e.user_img = photo;
+        userImgMap[e.user_sys_id] = photo;
+      }
+      return e;
+    });
+
+    return {
+      ...meta,
+      entries,
+      readable,
+      writeable
+    };
+  },
+
+  getSecurity: function (gr, guid) {
+    var access = {};
+
+    if (guid == -1) {
+      gr.initialize();
+      var canCreate = gr.canCreate();
+      access.canRead = canCreate;
+      access.canWrite = canCreate;
+    } else {
+      access.canRead = gr.canRead();
+      access.canWrite = gr.canWrite();
+      access.canDelete = gr.canDelete();
+    }
+
+    return access;
+  },
+
+  getAttachments: function (table, guid, instance) {
+    grAttach = new GlideRecordSecure('sys_attachment');
+    grAttach.addQuery('table_name', table);
+    grAttach.addQuery('table_sys_id', 'IN', guid);
+    grAttach.orderBy('sys_created_on');
+    grAttach.query();
+
+    var attachments = [];
+    while (grAttach.next()) {
+      var id = grAttach.getUniqueValue();
+      attachments.push({
+        sys_id: id,
+        url: instance + 'sys_attachment.do?sys_id=' + id,
+        file_name: grAttach.getValue('file_name'),
+        content_type: grAttach.getValue('content_type')
+      });
+    }
+
+    return attachments;
+  },
+
+  getGlideUser: function () {
+    const gsu = gs.getUser();
+
+    return {
+      roles: j2js(gsu.getAllRoles()),
+      departmentID: gsu.getDeparmentID(),
+      firstName: gsu.getFirstName(),
+      lastName: gsu.getLastName(),
+      fullName: gsu.getFullName(),
+      userID: gsu.getID(),
+      userName: gsu.getName()
+    };
+  },
+
+  getEsMode: function (gr, table, guid) {
+    let jsVersion = () => {
+      let scope = gr.sys_scope;
+
+      //First try to get scope via target record
+      if (scope) {
+        const esMode = scope.js_level.getValue();
+        return esMode == 'es_latest' ? 'latest' : 5;
+      }
+
+      //Next try to get scope via table
+      const grDb = new GlideRecord('sys_db_object');
+      if (grDb.get('name', table)) {
+        scope = grDb.sys_scope;
+        if (scope.toString() != 'global') {
+          const ecma = grDb.get('name', table) ? scope.js_level.toString() : '5';
+          return ecma == 'es_latest' ? 'latest' : 5;
+        }
+      }
+
+      //Lastly get scope via users current application
+      scope = gs.getCurrentApplicationId();
+      if (scope == 'global') return 5;
+
+      const grScope = new GlideRecord('sys_scope');
+      if (grScope.get(scope)) {
+        const esMode = grScope.getValue('js_level');
+        return esMode == 'es_latest' ? 'latest' : 5;
+      }
+    };
+
+    const jsv = jsVersion() || 5;
+    if (guid == -1 || jsv == 'latest') return jsv;
+
+    const grEsLatest = new GlideRecord('sys_es_latest_script');
+    grEsLatest.addQuery('id', guid);
+    grEsLatest.addQuery('use_es_latest', true);
+    grEsLatest.query();
+
+    return grEsLatest.next() ? 'latest' : jsv;
+  },
+
+  modifyPolicies: function (policies, gr) {
+    for (const p of policies) {
+      for (const c of p.conditions) {
+        if (c.reference_fields) {
+          c.dotWalkedValue = this.dotwalkElement(gr, c.field);
+        }
+      }
+    }
+  },
+
+  dotwalkElement: function (gr, fields) {
+    var fieldList = fields.split('.');
+    fieldList.forEach(f => {
+      gr = gr[f];
+    });
+    return gr.toString();
+  },
+
+  type: 'ScriptConsoleG'
+};]]></script>
+<sys_class_name>sys_script_include</sys_class_name>
+<sys_created_by>vinceadmin</sys_created_by>
+<sys_created_on>2025-09-24 11:40:00</sys_created_on>
+<sys_id>e47924f383c8be1025451429feaad34f</sys_id>
+<sys_mod_count>94</sys_mod_count>
+<sys_name>ScriptConsoleG</sys_name>
+<sys_package display_value="Global" source="global">global</sys_package>
+<sys_policy/>
+<sys_scope display_value="Global">global</sys_scope>
+<sys_update_name>sys_script_include_e47924f383c8be1025451429feaad34f</sys_update_name>
+<sys_updated_by>vinceadmin</sys_updated_by>
+<sys_updated_on>2025-10-25 11:45:24</sys_updated_on>
+</sys_script_include>
+</unload>
