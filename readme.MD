@@ -10,7 +10,7 @@ The build process uses **ServiceNow Fluent**, allowing the frontend React applic
 
 This application is built for pro code ServiceNow developers. It isn’t intended to replace tools like ServiceNow Studio, which focus on creating applications from scratch. Instead, it streamlines updates to existing script-based records.
 
-By targeting scripts specifically, the frontend remains lightning fast - it skips unnecessary metadata queries and gets straight to what matters: **writing code**.
+By targeting scripts specifically, the frontend remains lightning fast - it skips unnecessary metadata queries and gets straight to what matters: **writing code**. And dont worry, all the features you are use to from the out of the box script editor such as IntelliSense autocompletions are also here.
 
 ---
 
@@ -61,7 +61,7 @@ Use this option if you plan to modify or explore the application.
    npm run build
    npm run deploy
    ```
-6. Finally, include the global Script Include `ScriptConsoleG` in your instance. Download the XML from the [public folder](/public/ScriptConsoleG.xml) and import it.
+6. Finally, include the global Script Include `ScriptConsoleG` in your instance. Download the XML from the [public folder](/public/ScriptConsoleG.xml) and import it. You will also need to Turn on ECMAScript 2021(ES12) mode for this script after you have imported it.
 
 Although Script Console is a scoped application, it relies on one global Script Include for simplified cross scope access as well as making use of APIs which only exist in the global scope.
 
