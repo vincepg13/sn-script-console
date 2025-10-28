@@ -1,4 +1,4 @@
-import { useUnsavedChanges } from '@/components/editor/hooks/useUnsavedChanges';
+import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
 import { WidgetEditor } from '@/components/editor/WidgetEditor';
 import { UnsavedChangesModal } from '@/components/generic/UnsavedChangesModal';
 import { useWidget, WidgetProvider } from '@/context/widget-context';

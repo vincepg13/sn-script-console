@@ -1,8 +1,8 @@
 import { useAppData } from '@/context/app-context';
 import { normalize, useScript } from '@/context/script-context';
 import { useEffect, useEffectEvent, useMemo, useState } from 'react';
-import { UnsavedChangesModal } from '../generic/UnsavedChangesModal';
 import { setEsVersion, SnScriptEditor, SnScriptFieldType } from 'sn-shadcn-kit/script';
+import { ExternalChangesDialog } from '../generic/ExternalChangesDialog';
 
 export function ScriptField() {
   const {
@@ -61,12 +61,10 @@ export function ScriptField() {
         onReady={r => (editorRef.current = r)}
         customToolbar={null}
       />
-      <UnsavedChangesModal
-        title="An External Change Was Detected"
+      <ExternalChangesDialog
         description={`The record you're editing has been updated by ${updater.name} at ${updater.updated}. Please decide whether you want to load the external changes, or keep your changes`}
         open={warnExternalChange}
         setOpen={setWarnExternalChange}
-        confirmBtnText="Keep my changes"
         onConfirm={() => {
           setStagedChanges(true);
           setWarnExternalChange(false);
@@ -74,7 +72,6 @@ export function ScriptField() {
         onCancel={() => {
           setVal(serverVal);
         }}
-        cancelBtnText="Sync external change"
       />
     </div>
   );

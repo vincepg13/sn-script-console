@@ -1,4 +1,4 @@
-import { useUnsavedChanges } from '@/components/editor/hooks/useUnsavedChanges';
+import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
 import { UnsavedChangesModal } from '@/components/generic/UnsavedChangesModal';
 import { ScriptField } from '@/components/script/ScriptField';
 import { ScriptHeader } from '@/components/script/ScriptHeader';
@@ -21,8 +21,13 @@ export default function ScriptPage() {
 }
 
 function GuardedEditor() {
-  const { stagedChanges } = useScript();
+  const { stagedChanges, setStagedChanges } = useScript();
   const guard = useUnsavedChanges(stagedChanges);
+
+  const handleConfirmation = () => {
+    setStagedChanges(false);
+    guard.confirm();
+  };
 
   return (
     <UnsavedChangesModal
@@ -30,7 +35,7 @@ function GuardedEditor() {
       description="You have unsaved changes on this widget. Navigating away will discard those changes. Are you sure you want to continue?"
       open={guard.open}
       setOpen={guard.setOpen}
-      onConfirm={guard.confirm}
+      onConfirm={handleConfirmation}
       onCancel={guard.cancel}
     />
   );

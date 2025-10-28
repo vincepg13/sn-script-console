@@ -1,6 +1,5 @@
 import {
   AlertDialog,
-  // AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -30,17 +29,14 @@ export function UnsavedChangesModal({
   confirmBtnText?: string;
 }) {
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
+    <AlertDialog open={open} onOpenChange={v => (v ? setOpen(true) : onCancel())}>
       <AlertDialogContent className="text-accent-foreground">
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={onCancel}>{cancelBtnText}</AlertDialogCancel>
-          {/* <AlertDialogAction onClick={onConfirm} asChild>
-            <Button variant="destructive">Discard & Leave</Button>
-          </AlertDialogAction> */}
+          <AlertDialogCancel>{cancelBtnText}</AlertDialogCancel>
           <Button variant="destructive" onClick={onConfirm}>
             {confirmBtnText}
           </Button>

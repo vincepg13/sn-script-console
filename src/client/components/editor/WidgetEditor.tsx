@@ -38,7 +38,7 @@ export function WidgetEditor() {
   const esVersion = widget.esVersion;
 
   const { config, setLocalPreference } = useAppData();
-  const { esLintConfig, preferences } = config;
+  const { esLintConfig, preferences, prettierConfig } = config;
 
   const [warn, setWarn] = useState(false);
   const [scriptVals, setScriptVals] = useState<Record<string, string>>(getScriptVals(widget.fields));
@@ -92,6 +92,7 @@ export function WidgetEditor() {
                   content={scriptVals[e.field]}
                   esLintConfig={lintingSettings}
                   theme={preferences?.theme || 'atom'}
+                  prettierOptions={prettierConfig ?? undefined}
                   parentClasses="flex-1 min-h-0 flex flex-col"
                   cmContainerClasses="flex-1 min-h-0 overflow-auto"
                   onReady={ref => setScriptRef(target.name, ref)}

@@ -28,7 +28,7 @@ You can install Script Console in two ways:
 
 If you're planning to use the application as-is, this is the simplest and recommended approach.
 
-1. Download the latest [update set](/public/Script%20Console%20V1.0.xml) from the public folder of this repository or from [ServiceNow Share](https://developer.servicenow.com/connect.do#!/share/contents/1722570_script_console?t=PRODUCT_DETAILS).
+1. Download the latest [update set](/public/Script%20Console%20V1.0.1.xml) from the public folder of this repository or from [ServiceNow Share](https://developer.servicenow.com/connect.do#!/share/contents/1722570_script_console?t=PRODUCT_DETAILS).
 2. Import and commit it to your ServiceNow instance via the **Update Sets** module.
 
 That’s it! The update set installs one file in the global scope - a script include named `ScriptConsoleG` - and the scoped application **Script Console**.
