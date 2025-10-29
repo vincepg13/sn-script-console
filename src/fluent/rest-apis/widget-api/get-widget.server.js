@@ -5,8 +5,9 @@
 
   if (grWidget.get(guid)) {
     const data = {};
+    const gUser = gs.getUser();
     const util = new ScriptConsoleUtils();
-    gs.getUser().savePreference('script_console.widget', guid);
+    gUser.savePreference('script_console.widget', guid);
 
     const scopeChange = util.sgu.autoScopeSwitch(grWidget);
     data.scopeChange = scopeChange;
@@ -22,12 +23,15 @@
       fieldData.canWrite = grWidget[fieldName].canWrite();
     }
 
+    let toggled = gUser.getPreference('script_console.widget_columns_open') || 'template,client_script,script';
+    toggled = toggled.split(',');
+
     data.toggleButtons = [
-      { label: 'HTML', field: 'template', parser: 'html', visible: true },
-      { label: 'CSS', field: 'css', parser: 'scss', visible: false },
-      { label: 'Client', field: 'client_script', parser: 'babel', visible: true },
-      { label: 'Server', field: 'script', parser: 'babel', visible: true },
-      { label: 'Link', field: 'link', visible: false }
+      { label: 'HTML', field: 'template', parser: 'html', visible: toggled.includes('template') },
+      { label: 'CSS', field: 'css', parser: 'scss', visible: toggled.includes('css') },
+      { label: 'Client', field: 'client_script', parser: 'babel', visible: toggled.includes('client_script') },
+      { label: 'Server', field: 'script', parser: 'babel', visible: toggled.includes('script') },
+      { label: 'Link', field: 'link', visible: toggled.includes('link') }
     ];
 
     data.toggleButtons.forEach(function (b) {

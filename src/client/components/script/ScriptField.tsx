@@ -1,8 +1,9 @@
 import { useAppData } from '@/context/app-context';
 import { normalize, useScript } from '@/context/script-context';
-import { useEffect, useEffectEvent, useMemo, useState } from 'react';
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { setEsVersion, SnScriptEditor, SnScriptFieldType } from 'sn-shadcn-kit/script';
 import { ExternalChangesDialog } from '../generic/ExternalChangesDialog';
+import { useSlashPrevention } from '@/hooks/useSlashPrevention';
 
 export function ScriptField() {
   const {
@@ -27,6 +28,7 @@ export function ScriptField() {
 
   const externalChangeEvent = useEffectEvent((externalValue: string) => {
     const editorVal = editorRef.current?.getRawValue();
+
     if (!editorVal) return;
 
     if (stagedChanges && editorVal) {
@@ -42,8 +44,11 @@ export function ScriptField() {
     return setEsVersion(esVersion, esLintConfig!);
   }, [esLintConfig, esVersion]);
 
+  const cmContainer = useRef<HTMLDivElement>(null);
+  const { onKeyDown } = useSlashPrevention();
+
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="flex h-full min-h-0 flex-col" ref={cmContainer} onKeyDown={onKeyDown}>
       <SnScriptEditor
         height="100%"
         snType={type as SnScriptFieldType}

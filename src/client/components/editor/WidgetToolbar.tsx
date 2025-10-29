@@ -17,7 +17,7 @@ import { GeneralConfirm } from '../generic/GeneralConfirm';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
-export function WidgetToolbar() {
+export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => void }) {
   const navigate = useNavigate();
   const [confirm, setConfirm] = useState('');
 
@@ -43,6 +43,7 @@ export function WidgetToolbar() {
   }, [navigate, widget.guid]);
 
   const onSave = useCallback(async () => {
+    setSaveFlag?.(true);
     resetController();
 
     try {
@@ -50,11 +51,14 @@ export function WidgetToolbar() {
       if (result) {
         toast.success('Widget saved');
         applySavedChanges(saveData);
+      } else {
+        setSaveFlag?.(false);
       }
     } catch (e) {
+      setSaveFlag?.(false);
       errorHandler(e, 'Failed to save widget');
     }
-  }, [applySavedChanges, saveData, widget.guid]);
+  }, [applySavedChanges, setSaveFlag, saveData, widget.guid]);
 
   useSaveShortcut({ enabled: canWrite, onTrigger: onSave });
 

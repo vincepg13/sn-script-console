@@ -57,6 +57,7 @@ export const WidgetSchema = z.object({
   dependencyCounts: DependencyCountSchema,
 });
 
+export type ToggleBtn = z.infer<typeof ToggleButtonSchema>;
 export type WidgetFields = z.infer<typeof WidgetFields>;
 export type WidgetRes = z.infer<typeof WidgetSchema>;
 export type DependencyCounts = z.infer<typeof DependencyCountSchema>;

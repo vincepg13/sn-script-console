@@ -25,6 +25,7 @@ export const cmThemeKey = 'script_console.codemirror_theme';
 export const autoScopeSwitchKey = 'script_console.scope_switch';
 export const autoPackageAddKey = 'script_console.package_add';
 export const directToWidgetKey = 'script_console.direct_widget';
+export const openWidgetColumnsKey = 'script_console.widget_columns_open';
 
 //Application / Update Set Pickers
 export const globalScope = { display_value: 'Global', value: 'global' };

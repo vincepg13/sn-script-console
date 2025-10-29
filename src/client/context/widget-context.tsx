@@ -1,4 +1,4 @@
-import { getWidget } from '@/lib/api';
+import { getWidget, setPreference } from '@/lib/api';
 import { useAppData } from './app-context';
 import { Link, useParams } from 'react-router';
 import { SnCodeMirrorHandle } from 'sn-shadcn-kit/script';
@@ -15,6 +15,7 @@ import React, {
   useRef,
   useEffectEvent,
 } from 'react';
+import { openWidgetColumnsKey } from '@/lib/config';
 
 type SaveData = Record<string, string>;
 
@@ -118,13 +119,28 @@ export const WidgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // normalization for comparisons
   const normalizeForCompare = useCallback(
     (name: keyof WidgetRes['fields'], raw: unknown) => {
-      const t = String(raw ?? '');
-      const noCRLF = t.replace(/\r\n/g, '\n');
-      const stripLineTrail = noCRLF.replace(/[ \t]+$/gm, '');
+      let t = String(raw ?? '');
+
+      // 1) EOLs: turn CRLF or lone CR into LF
+      t = t.replace(/\r\n?/g, '\n');
+
+      // 2) Strip trailing spaces per line (optional but you already do this)
+      t = t.replace(/[ \t]+$/gm, '');
+
+      // 3) Drop BOM if present (some editors strip it)
+      t = t.replace(/^\uFEFF/, '');
+
+      // 4) Normalize final newline policy: choose NONE (or choose exactly one)
+      //    Pick one and be consistent across both sides.
+      t = t.replace(/\n+$/g, '');
+
+      // 5) (Your special-case) compact HTML gaps if desired
       const fieldType = data?.fields[name]?.type;
-      const collapseBetweenTags =
-        fieldType && /html|template/i.test(String(fieldType)) ? stripLineTrail.replace(/>\s+</g, '><') : stripLineTrail;
-      return collapseBetweenTags.trim();
+      if (fieldType && /html|template/i.test(String(fieldType))) {
+        t = t.replace(/>\s+</g, '><');
+      }
+
+      return t;
     },
     [data]
   );
@@ -165,12 +181,14 @@ export const WidgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     (fieldName: string) => {
       qc.setQueryData<WidgetRes>(['widgetData', widgetId], prev => {
         if (!prev) return prev as unknown as WidgetRes;
-        return {
-          ...prev,
-          toggleButtons: prev.toggleButtons?.map(btn =>
-            btn.field === fieldName ? { ...btn, visible: !btn.visible } : btn
-          ),
-        };
+
+        const next = prev.toggleButtons?.map(btn =>
+          btn.field === fieldName ? { ...btn, visible: !btn.visible } : btn
+        );
+        const visible = next?.filter(b => b.visible).map(btn => btn.field) ?? [];
+        setPreference(openWidgetColumnsKey, visible.join(','));
+
+        return { ...prev, toggleButtons: next };
       });
     },
     [qc, widgetId]

@@ -5,13 +5,21 @@ import { WidgetToolbar } from './WidgetToolbar';
 import { useAppData } from '@/context/app-context';
 import { useWidget } from '@/context/widget-context';
 import { useQueryClient } from '@tanstack/react-query';
+import { useSlashPrevention } from '@/hooks/useSlashPrevention';
 import { SnAmbMessage, useRecordWatch } from 'sn-shadcn-kit/amb';
-import { useEffect, useEffectEvent, useMemo, useState } from 'react';
-import { UnsavedChangesModal } from '../generic/UnsavedChangesModal';
+import { ExternalChangesDialog } from '../generic/ExternalChangesDialog';
 import { Braces, CircleX, CodeSquare, SquareChartGantt } from 'lucide-react';
 import { setEsVersion, SnScriptEditor, SnScriptToolbar } from 'sn-shadcn-kit/script';
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 
 type SnScriptFieldType = 'script' | 'script_plain' | 'html_template' | 'css';
+type WidgetFieldVals = {
+  template: string;
+  script: string;
+  client_script: string;
+  css: string;
+  link: string;
+};
 
 const editorIconMap = {
   template: <SquareChartGantt />,
@@ -21,8 +29,8 @@ const editorIconMap = {
   link: <SquareChartGantt />,
 };
 
-const scriptFieldNames = ['template', 'script', 'client_script', 'css'];
-const getScriptVals = (fields: WidgetFields) => ({
+const scriptFieldNames = ['template', 'script', 'client_script', 'css', 'link'];
+const getScriptVals = (fields: WidgetFields): WidgetFieldVals => ({
   template: fields.template.value || '',
   script: fields.script.value || '',
   client_script: fields.client_script.value || '',
@@ -34,6 +42,7 @@ export function WidgetEditor() {
   const qc = useQueryClient();
   const { widget, stagedChanges, setStagedChanges, getScriptRef, setScriptRef, setFieldValue, toggleFieldVisibility } =
     useWidget();
+
   const locked = widget.security.canWrite === false;
   const esVersion = widget.esVersion;
 
@@ -41,25 +50,48 @@ export function WidgetEditor() {
   const { esLintConfig, preferences, prettierConfig } = config;
 
   const [warn, setWarn] = useState(false);
-  const [scriptVals, setScriptVals] = useState<Record<string, string>>(getScriptVals(widget.fields));
+  const justSaved = useRef(false);
+  const [scriptVals, setScriptVals] = useState(getScriptVals(widget.fields));
 
   const lintingSettings = useMemo(() => {
     return setEsVersion(esVersion, esLintConfig!);
   }, [esLintConfig, esVersion]);
 
   const externalChangeEvent = useEffectEvent(() => {
-    if (stagedChanges) return setWarn(true);
-    setScriptVals(getScriptVals(widget.fields));
+    if (!stagedChanges) setScriptVals(getScriptVals(widget.fields));
   });
-  useEffect(() => externalChangeEvent(), [widget]);
+  useEffect(() => externalChangeEvent(), [widget.fields]);
+
+  const stagedRef = useRef(stagedChanges);
+  useEffect(() => {
+    stagedRef.current = stagedChanges;
+  }, [stagedChanges]);
 
   const handleWatcher = (e: SnAmbMessage) => {
     if (e && e.data && e.data.changes) {
       if (e.data.record && e.data.changes.some(item => scriptFieldNames.includes(item))) {
+        if (justSaved.current) {
+          justSaved.current = false;
+          return;
+        }
+
+        if (stagedRef.current) return setWarn(true);
+
         qc.invalidateQueries({ queryKey: ['widgetData', widget.guid] });
       }
     }
   };
+
+  const setLocalFieldValue = useCallback(
+    (fieldName: string, value: string) => {
+      setScriptVals(prev => ({
+        ...prev,
+        [fieldName]: value,
+      }));
+      setFieldValue(fieldName, value);
+    },
+    [setFieldValue]
+  );
 
   //On mount close sidebar for widget editor
   const { setOpen } = useSidebar();
@@ -69,10 +101,17 @@ export function WidgetEditor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const cmContainer = useRef<HTMLDivElement>(null);
+  const { onKeyDown } = useSlashPrevention();
+
   return (
-    <div className="flex flex-col flex-1 min-h-0 gap-4">
+    <div className="flex flex-col flex-1 min-h-0 gap-4" ref={cmContainer} onKeyDown={onKeyDown}>
       <div className="px-4">
-        <WidgetToolbar />
+        <WidgetToolbar
+          setSaveFlag={() => {
+            justSaved.current = true;
+          }}
+        />
       </div>
       <div className="flex flex-1 min-h-0 overflow-y-hidden overflow-x-auto">
         {widget.toggleButtons
@@ -89,14 +128,15 @@ export function WidgetEditor() {
                   lineWrapping={false}
                   readonly={locked || !target.canWrite}
                   fieldName={target.name}
-                  content={scriptVals[e.field]}
+                  content={scriptVals[e.field as keyof WidgetFieldVals]}
                   esLintConfig={lintingSettings}
                   theme={preferences?.theme || 'atom'}
                   prettierOptions={prettierConfig ?? undefined}
                   parentClasses="flex-1 min-h-0 flex flex-col"
                   cmContainerClasses="flex-1 min-h-0 overflow-auto"
                   onReady={ref => setScriptRef(target.name, ref)}
-                  onBlur={(v: string) => setFieldValue(target.name, v)}
+                  // onBlur={(v: string) => setLocalFieldValue(target.name, v)}
+                  onChange={(v: string) => setLocalFieldValue(target.name, v)}
                   customToolbar={
                     <div className="flex justify-between items-center px-4 pt-2">
                       <div className="flex items-center gap-2">
@@ -118,12 +158,9 @@ export function WidgetEditor() {
             );
           })}
       </div>
-      <UnsavedChangesModal
-        title="An External Change Was Detected"
-        description={`This widget has been updated elsewhere. Do you want to keep your changes or sync to the latest version?`}
+      <ExternalChangesDialog
         open={warn}
         setOpen={setWarn}
-        confirmBtnText="Keep my changes"
         onConfirm={() => {
           setWarn(false);
           setStagedChanges(true);
@@ -131,9 +168,10 @@ export function WidgetEditor() {
         onCancel={() => {
           setWarn(false);
           setStagedChanges(false);
-          setScriptVals(getScriptVals(widget.fields));
+          qc.invalidateQueries({ queryKey: ['widgetData', widget.guid] }).then(() => {
+            setScriptVals(getScriptVals(widget.fields));
+          });
         }}
-        cancelBtnText="Sync external change"
       />
       <MountWidgetWatcher key={widget.guid} guid={widget.guid} cb={handleWatcher} />
     </div>
