@@ -65,6 +65,8 @@ Use this option if you plan to modify or explore the application.
 
 Although Script Console is a scoped application, it relies on one global Script Include for simplified cross scope access as well as making use of APIs which only exist in the global scope.
 
+**PLEASE NOTE** - The application makes use of user preferences to store user related configuration. Therefore I would suggest also setting up a clone preserve to keep your configuration on sub production instances which is where this application will mainly be used. To do this you can set a preserve on the `sys_user_preference` table with a query of `nameSTARTSWITHscript_console`.
+
 ---
 
 ## 🛠 Technology Stack
