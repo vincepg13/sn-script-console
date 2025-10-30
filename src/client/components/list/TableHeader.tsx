@@ -70,8 +70,9 @@ export function TableHeader() {
 
   // Sync clearable with query
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSearchClearable(!!tableSearchRef.current?.value);
-  }, [tableSearchRef.current?.value, query]);
+  }, [tableSearchRef, query]);
 
   return (
     <div className="flex flex-col gap-4">

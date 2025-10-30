@@ -42,6 +42,13 @@ export async function bootstrapApp(signal?: AbortSignal) {
   const _axios = mode === 'development' ? isDevelopment() : await isProduction();
 
   const config = await getAppConfig(signal);
+  console.log("App Config:", config);
+
+  //Core rules always enforced
+  if (config.esLintConfig?.rules) {
+    config.esLintConfig.rules['no-const-assign'] = 'error';
+  }
+
   return {...config};
 }
 
