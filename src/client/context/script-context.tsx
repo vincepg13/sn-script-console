@@ -5,21 +5,12 @@ import { ScriptTableItems } from '@/types/app';
 import { ScriptMetadata } from '@/types/script';
 import { fallbackScriptTables } from '@/lib/config';
 import { useNavigate, useParams } from 'react-router';
-import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSharedRouteConfig } from '@/hooks/useSharedConfig';
+import { SnAmbMessage, useRecordWatch } from 'sn-shadcn-kit/amb';
 import { GeneralLoader } from '@/components/generic/GeneralLoader';
 import { ESVersion, SnCodeMirrorHandle } from 'sn-shadcn-kit/script';
-import {
-  createContext,
-  RefObject,
-  useCallback,
-  useContext,
-  useEffect,
-  useEffectEvent,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { SnAmbMessage, useRecordWatch } from 'sn-shadcn-kit/amb';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import { createContext, RefObject, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 interface ScriptContextValue {
   metadata: ScriptMetadata;
@@ -59,7 +50,7 @@ export const ScriptProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const navigate = useNavigate();
   const [stagedChanges, setStagedChanges] = useState(false);
 
-  const { config, setConfig, setPackageData } = useAppData();
+  const { config } = useAppData();
   const { table, id } = useParams<{ table: string; id: string }>();
 
   const scriptTables = useMemo(() => config?.scriptTables || fallbackScriptTables, [config?.scriptTables]);
@@ -67,6 +58,7 @@ export const ScriptProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const targetField = targetTable?.field;
 
   const { data, isLoading, error, isFetching, refetch } = useQuery(scriptDataQuery(table!, id!, targetField));
+  useSharedRouteConfig(data, isFetching, qc);
 
   const patchScriptInCache = (nextScript: string, updatedBy: string, updatedOn: string) => {
     qc.setQueryData<Awaited<ReturnType<typeof getScriptData>>>(['scriptData', table, id, targetField], prev => {
@@ -79,40 +71,6 @@ export const ScriptProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       };
     });
   };
-
-  useEffect(() => {
-    if (data?.scopeChange) {
-      const sc = data.scopeChange;
-      if (sc.scope.value === config.scope.value) return;
-
-      setConfig(prev =>
-        prev.scope.value === sc.scope.value ? prev : { ...prev, scope: sc.scope, updateSet: sc.updateSet }
-      );
-      
-      qc.invalidateQueries({ queryKey: ['appConfig'] });
-    }
-  }, [config.scope.value, data?.scopeChange, qc, setConfig]);
-
-  const scopeChangeEvent = useEffectEvent(() => {
-    if (data?.scopeChange) {
-      if (data.scopeChange.scope.value !== config.scope.value) {
-        const sc = data.scopeChange;
-
-        setConfig(prev =>
-          prev.scope.value === sc.scope.value ? prev : { ...prev, scope: sc.scope, updateSet: sc.updateSet }
-        );
-      }
-    }
-  });
-  useEffect(() => scopeChangeEvent(), [isFetching]);
-
-  useEffect(() => {
-    if (data && data.packageValue) {
-      const pv = data.packageValue;
-      setPackageData(prev => ({ ...prev, packageItems: pv }));
-      qc.invalidateQueries({ queryKey: ['appConfig'] });
-    }
-  }, [data, qc, setPackageData]);
 
   const serverVal = data?.script || '';
   const timerRef = useRef<number | null>(null);
@@ -161,8 +119,8 @@ export const ScriptProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   if (error) {
     if (isAxiosError(error) && (error.status == 500 || error.status == 404)) return null;
-    console.error('Error loading widget data', error);
-    throw new Error('Error loading widget data');
+    console.error('Error loading script data', error);
+    throw new Error('Error loading script data');
   }
 
   if (!data) return null;

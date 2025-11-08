@@ -1,6 +1,10 @@
+import { StatsRes } from '@/types/stats';
+import { ScriptSchema } from '@/types/script';
+import { PolicySchema } from '@/types/policy';
 import { getAxiosInstance } from 'sn-shadcn-kit';
 import { ListRecords, ListRecordsSchema } from '@/types/list';
 import { AppConfigSchema, ScopeUpdateSchema, UpdateSetSchema } from '@/types/app';
+import { PackageCreateRes, PackageUpdateSchema, PackageValueSchema } from '@/types/package';
 import {
   DependencyCountSchema,
   DependencyList,
@@ -12,9 +16,6 @@ import {
   WidgetRes,
   WidgetSchema,
 } from '@/types/widget';
-import { ScriptSchema } from '@/types/script';
-import { StatsRes } from '@/types/stats';
-import { PackageCreateRes, PackageUpdateSchema, PackageValueSchema } from '@/types/package';
 
 const tableApi = '/api/now/table';
 const coreApi = '/api/x_659318_script/console_core';
@@ -41,6 +42,21 @@ export async function getTableData(table: string, query: string, page: number, p
   });
 
   return ListRecordsSchema.parse(response.data.result);
+}
+
+export async function getPolicyData(id: string, signal: AbortSignal) {
+  const axios = getAxiosInstance();
+
+  const res = await axios.get(`${coreApi}/policy/${id}`, { signal });
+  const policyData = res.data.result;
+
+  const { data } = await axios.get(`/api/now/ui/meta/${policyData.table}`, {
+    params: { sysparm_operators: false, sysparm_keywords: false },
+    signal,
+  });
+
+  policyData.tableMeta = data.result.columns;
+  return PolicySchema.parse(policyData);
 }
 
 export async function getScriptData(table: string, id: string, field: string, signal: AbortSignal) {
@@ -145,6 +161,13 @@ export async function cloneWidget(guid: string, name: string, id: string, signal
   const response = await axios.post(`${baseApi}/clone_widget/${guid}`, { name, id }, { signal });
 
   return { guid: response.data.result.guid, message: response.data.result.message };
+}
+
+export async function setPersonalList(table: string, items?: string[], signal?: AbortSignal) {
+  const axios = getAxiosInstance();
+
+  const params = items ? [table, items] : [table];
+  await axios.post(`${coreApi}/global_method/setListMechanic`, { params }, { signal });
 }
 
 export async function revertVersion(versionId: string, signal?: AbortSignal): Promise<boolean> {

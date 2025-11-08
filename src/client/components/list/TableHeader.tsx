@@ -1,25 +1,31 @@
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { MenuItem } from '@/types/app';
+import { errorHandler } from '@/lib/utils';
+import { setPersonalList } from '@/lib/api';
 import { useList } from '@/context/list-context';
-import { Link, useSearchParams } from 'react-router';
 import { useAppData } from '@/context/app-context';
-import { SnConditionBuilder } from 'sn-shadcn-kit/table';
+import { Link, useSearchParams } from 'react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { SimpleTooltip } from '../generic/SimpleTooltip';
 import { LoadingSpinner } from '../generic/LoadingSpinner';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { fallbackMenuItems, instanceURI } from '@/lib/config';
-import { CircleX, ListFilter, SquareArrowOutUpRight } from 'lucide-react';
+import { useCancelableFn } from '@/hooks/useAbortableController';
 import { useDebouncedCallback } from '../editor/hooks/useDebouncedCallback';
+import { CircleX, ListFilter, Settings2, SquareArrowOutUpRight } from 'lucide-react';
+import { SnConditionBuilder, SnListItem, SnPersonaliseList } from 'sn-shadcn-kit/table';
 
 export function TableHeader() {
+  const qc = useQueryClient();
+  
   const [, setSp] = useSearchParams();
   const [showFilter, setShowFilter] = useState(false);
   const tableSearchRef = useRef<HTMLInputElement>(null);
   const [searchClearable, setSearchClearable] = useState(false);
 
   const { table, listData, uuid, query, isFetching } = useList();
-  const { config } = listData;
+  const { config, listMechanic } = listData;
   const { tableLabel, displayField } = config;
 
   const { config: appConfig } = useAppData();
@@ -74,6 +80,20 @@ export function TableHeader() {
     setSearchClearable(!!tableSearchRef.current?.value);
   }, [tableSearchRef, query]);
 
+  const saveList = async (items?: SnListItem[]) => {
+    try {
+      await setPersonal.run(table, items);
+      qc.invalidateQueries({queryKey: ['listData', table]});
+    } catch (error) {
+      errorHandler(error, 'Failed to save personalised list');
+    }
+  };
+
+  const setPersonal = useCancelableFn((signal, table: string, items?: SnListItem[]) => {
+    const listItems = items?.map(i => i.value);
+    return setPersonalList(table, listItems, signal);
+  });
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-end justify-between w-full flex-wrap">
@@ -98,6 +118,15 @@ export function TableHeader() {
               />
             )}
           </div>
+          <SimpleTooltip content="Personalise List">
+            <div>
+              <SnPersonaliseList key={table} {...listMechanic} onSave={saveList}>
+                <Button variant="outline" size="icon">
+                  <Settings2 />
+                </Button>
+              </SnPersonaliseList>
+            </div>
+          </SimpleTooltip>
           <SimpleTooltip content={showFilter ? 'Close Advanced Filter' : 'Open Advanced Filter'}>
             <Button variant="outline" size="icon" onClick={() => setShowFilter(!showFilter)}>
               <span className={`transition-transform duration-300 ease-in-out ${showFilter ? 'rotate-180' : ''}`}>

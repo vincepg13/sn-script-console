@@ -37,6 +37,7 @@ export function Pickers() {
   const handleAppChange = async (newScope: SnRecordPickerItem) => {
     try {
       const { scope, updateSet } = await setApplication(newScope.value);
+
       setConfig({ scope, updateSet });
       qc.invalidateQueries({ queryKey: ['appConfig'] });
       qc.invalidateQueries({ queryKey: ['widgetData'] });
@@ -116,8 +117,12 @@ function AppPicker({
           query="private=false"
           value={scopePicker}
           onChange={record => onChange((record || globalScope) as SnRecordPickerItem)}
+          // onChange={record => {
+          //   if (!record) return; // ⟵ ignore transient null
+          //   onChange(record as SnRecordPickerItem);
+          // }}
           placeholder="Select an Application..."
-          clearable={editable}
+          clearable={editable && scopePicker.value !== 'global'}
           editable={editable}
         />
       </div>

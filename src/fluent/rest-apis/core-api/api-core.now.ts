@@ -61,6 +61,15 @@ RestApi({
       path: '/script_data/{table}/{id}/{field}',
     },
     {
+      $id: Now.ID['sc-core-policy'],
+      name: 'Get Policy Data',
+      method: 'GET',
+      script: Now.include('./policy.server.js'),
+      consumes: 'application/json',
+      produces: 'application/json,application/xml,text/xml',
+      path: '/policy/{id}',
+    },
+    {
       $id: Now.ID['sc-core-global-method'],
       method: 'POST',
       name: 'Global Method',

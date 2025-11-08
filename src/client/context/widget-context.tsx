@@ -1,8 +1,9 @@
-import { getWidget, setPreference } from '@/lib/api';
-import { useAppData } from './app-context';
 import { Link, useParams } from 'react-router';
+import { openWidgetColumnsKey } from '@/lib/config';
+import { getWidget, setPreference } from '@/lib/api';
 import { SnCodeMirrorHandle } from 'sn-shadcn-kit/script';
 import { DependencyCounts, WidgetRes } from '@/types/widget';
+import { useSharedRouteConfig } from '@/hooks/useSharedConfig';
 import { GeneralLoader } from '@/components/generic/GeneralLoader';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import React, {
@@ -13,9 +14,7 @@ import React, {
   useState,
   RefObject,
   useRef,
-  useEffectEvent,
 } from 'react';
-import { openWidgetColumnsKey } from '@/lib/config';
 
 type SaveData = Record<string, string>;
 
@@ -84,37 +83,7 @@ export const WidgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [saveData, setSaveData] = useState<SaveData>({});
   const [stagedChanges, setStagedChanges] = useState(false);
 
-  const { config, setConfig, setPackageData } = useAppData();
-  useEffect(() => {
-    if (data && data.scopeChange) {
-      const sc = data.scopeChange;
-
-      setConfig(prev =>
-        prev.scope.value === sc.scope.value ? prev : { ...prev, scope: sc.scope, updateSet: sc.updateSet }
-      );
-      qc.invalidateQueries({ queryKey: ['appConfig'] });
-    }
-  }, [data, qc, setConfig]);
-
-  const scopeChangeEvent = useEffectEvent(() => {
-    if (data?.scopeChange) {
-      if (data.scopeChange.scope.value !== config.scope.value) {
-        const sc = data.scopeChange;
-
-        setConfig(prev =>
-          prev.scope.value === sc.scope.value ? prev : { ...prev, scope: sc.scope, updateSet: sc.updateSet }
-        );
-      }
-    }
-  });
-  useEffect(() => scopeChangeEvent(), [isFetching]);
-
-  useEffect(() => {
-    if (data && data.packageValue) {
-      const pv = data.packageValue;
-      setPackageData(prev => ({ ...prev, packageItems: pv }));
-    }
-  }, [data, setPackageData]);
+  useSharedRouteConfig(data, isFetching, qc);  
 
   // normalization for comparisons
   const normalizeForCompare = useCallback(

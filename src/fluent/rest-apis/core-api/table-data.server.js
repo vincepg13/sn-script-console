@@ -10,6 +10,8 @@
   const page = +(request.queryParams.page || 0);
   const pageSize = +(request.queryParams.pageSize || 10);
 
-  const tableData = new global.ScriptConsoleG().getTableData(gr, page, pageSize, query);
-  response.setBody(tableData);
+  const sgu = new global.ScriptConsoleG();
+  const listMechanic = sgu.getListMechanic(table);
+  const tableData = sgu.getTableData(gr, page, pageSize, query);
+  response.setBody({ ...tableData, listMechanic });
 })(request, response);

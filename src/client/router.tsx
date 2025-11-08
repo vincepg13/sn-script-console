@@ -4,6 +4,7 @@ import HomePage from "./routes/HomePage";
 import FormPage from "./routes/FormPage";
 import ScriptPage from "./routes/ScriptPage";
 import { createHashRouter } from "react-router";
+import { PolicyPage } from "./routes/PolicyPage";
 import GeneralError from "./routes/errors/GeneralError";
 import WidgetEditorPage from "./routes/WidgetEditorPage";
 import NotFoundError from "./routes/errors/NotFoundError";
@@ -23,6 +24,7 @@ export function makeRouter() {
         { path: "widget_editor/:id", element: <WidgetEditorPage /> },
         { path: "form/:table/:sys_id", element: <FormPage /> },
         { path: "script/:table/:id", element: <ScriptPage /> },
+        { path: "policy/:id", element: <PolicyPage /> },
         { path: "invalid", element: <InvalidRecordError /> },
         { path: "*", element: <NotFoundError /> },
       ],

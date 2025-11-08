@@ -2,11 +2,11 @@
   const methodName = request.pathParams.name;
   const params = request.body.data.params || [];
 
-  const allowList = ["revertVersion", "setCurrentScope", "setCurrentUpdateSet", "refreshScope"];
+  const allowList = ['revertVersion', 'setCurrentScope', 'setCurrentUpdateSet', 'refreshScope', 'setListMechanic'];
   if (!allowList.includes(methodName)) {
     return response.setError(new sn_ws_err.BadRequestError('This method could not be invoked'));
   }
 
   const sgu = new global.ScriptConsoleG();
-  return response.setBody({returned: sgu[methodName](...params)});
+  return response.setBody({ returned: sgu[methodName](...params) });
 })(request, response);

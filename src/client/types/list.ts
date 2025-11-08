@@ -1,3 +1,4 @@
+import { SnPersonalListSchema } from 'sn-shadcn-kit/table';
 import { z } from 'zod';
 
 const FieldHeaderSchema = z.object({
@@ -24,12 +25,13 @@ export const ListRecordsSchema = z.object({
   config: tableConfigSchema,
   fields: z.array(FieldHeaderSchema),
   records: z.array(FieldValueSchema),
+  listMechanic: SnPersonalListSchema
 });
 
 export type TableConfig = z.infer<typeof tableConfigSchema>;
 export type FieldHeader = z.infer<typeof FieldHeaderSchema>;
 export type FieldValue = z.infer<typeof FieldValueSchema>;
-  export type ListData = z.infer<typeof ListRecordsSchema>;
+export type ListData = z.infer<typeof ListRecordsSchema>;
 
 const listRecordField = z.object({
   value: z.string(),
