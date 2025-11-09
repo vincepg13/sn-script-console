@@ -10,18 +10,20 @@ export function PolicyPage() {
 
   return (
     <PolicyProvider>
-      <MountedTabs value={tab} onValueChange={setTab} className="flex h-full min-h-0 flex-col gap-4">
-        <div className="shrink-0">
-          <PolicyHeader />
-        </div>
-        <div className="flex-1 min-h-0">
-          <TabsContent value="policy">
-            <PolicyForm />
-          </TabsContent>
+      <MountedTabs value={tab} onValueChange={setTab} className="h-full min-h-0">
+        <div className="flex flex-col gap-4 pb-6">
+          <div className="shrink-0">
+            <PolicyHeader />
+          </div>
+          <div className="flex-1 min-h-0">
+            <TabsContent value="policy">
+              <PolicyForm />
+            </TabsContent>
 
-          <TabsContent value="actions">
-            <PolicyActions />
-          </TabsContent>
+            <TabsContent value="actions">
+              <PolicyActions />
+            </TabsContent>
+          </div>
         </div>
       </MountedTabs>
       {/* <GuardedEditor /> */}

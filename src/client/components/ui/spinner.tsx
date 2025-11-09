@@ -1,10 +1,20 @@
-import { Loader2Icon } from "lucide-react"
+import { Loader, Loader2Icon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-function Spinner({ className, ...props }: React.ComponentProps<"svg">) {
+const iconMap = {
+  loader: Loader,
+  default: Loader2Icon,
+}
+
+type LoaderProps = React.ComponentProps<"svg"> & {
+  type?: keyof typeof iconMap
+}
+
+function Spinner({ className, type = "default", ...props }: LoaderProps) {
+  const IconComponent = iconMap[type];
   return (
-    <Loader2Icon
+    <IconComponent
       role="status"
       aria-label="Loading"
       className={cn("size-4 animate-spin", className)}

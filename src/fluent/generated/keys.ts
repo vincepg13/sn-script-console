@@ -770,6 +770,7 @@ declare global {
           'x_659318_script/tiptap-V-fDKZOk': {
             table: 'sys_ux_lib_asset';
             id: '5ae1a98cd356499a962cd86165f526c3';
+            deleted: false;
           };
         };
         composite: [

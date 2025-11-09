@@ -60,9 +60,10 @@ export function ViewTable() {
   //Open the record tab when a row is clicked
   const openRecord = (row: Row<SnRow>) => {
     const guid = row.original.sys_id?.value;
+    const isPolicy = table === 'sys_ui_policy';
 
     if (guid) {
-      navigate(`/script/${table}/${guid}`);
+      navigate(isPolicy ? `/policy/${guid}` : `/script/${table}/${guid}`);
     }
   };
 

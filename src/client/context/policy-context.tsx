@@ -1,6 +1,7 @@
 import { isAxiosError } from 'axios';
 import { useParams } from 'react-router';
 import { getPolicyData } from '@/lib/api';
+import { useAppData } from './app-context';
 import { PolicyAction } from '@/types/policy';
 import { SnConditionMap } from 'sn-shadcn-kit/table';
 import { createContext, useContext, useMemo } from 'react';
@@ -9,10 +10,11 @@ import { GeneralLoader } from '@/components/generic/GeneralLoader';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface PolicyContextValue {
-  policy: { name: string; guid: string; table: string; scope: string, meta: SnConditionMap };
+  policy: { name: string; guid: string; table: string; scope: string; meta: SnConditionMap };
   actions: PolicyAction[];
   isFetching: boolean;
   isLoading: boolean;
+  withinScope: boolean;
   refetch: () => void;
 }
 
@@ -34,6 +36,9 @@ export const PolicyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const { data, isLoading, error, isFetching, refetch } = useQuery(policyDataQuery(id!));
   useSharedRouteConfig(data, isFetching, qc);
 
+  const { config } = useAppData();
+  const inScope = useMemo(() => data?.scope === config.scope.value, [data?.scope, config.scope.value]);
+  
   const value = useMemo<PolicyContextValue | undefined>(() => {
     if (!data) return undefined;
     return {
@@ -44,12 +49,13 @@ export const PolicyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         scope: data.scope,
         meta: data.tableMeta,
       },
+      withinScope: inScope,
       actions: data.actions,
       isFetching,
       isLoading,
       refetch,
     };
-  }, [data, isFetching, isLoading, refetch]);
+  }, [data, isFetching, isLoading, inScope, refetch]);
 
   if (isLoading) return <GeneralLoader />;
 

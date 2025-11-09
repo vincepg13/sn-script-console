@@ -1,11 +1,10 @@
+import { Button } from '../ui/button';
+import { useEffect, useState } from 'react';
+import { PolicyRow } from './PolicyActionRow';
 import { usePolicy } from '@/context/policy-context';
-import { PolicyAction } from '@/types/policy';
-import { startTransition, useEffect, useState } from 'react';
-import { SnConditionMap, SnDotwalkChoice } from 'sn-shadcn-kit/table';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
-
-type ActionField = 'field' | 'mandatory' | 'visible' | 'disabled' | 'cleared';
-type FieldsByTable = Record<string, SnConditionMap>;
+import { ActionField, FieldsByTable } from '@/types/policy';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Asterisk, BadgePlus, Glasses, MessageCircleWarning, PencilOff, RectangleEllipsis, Save } from 'lucide-react';
 
 export function PolicyActions() {
   const { policy, actions } = usePolicy();
@@ -13,12 +12,32 @@ export function PolicyActions() {
   const [localActions, setLocalActions] = useState(actions);
   const [fields, setFields] = useState<FieldsByTable>({ [policy.table]: policy.meta });
 
-  useEffect(() => {
-    console.log('ACTIONs CHANGED:', actions);
-    setLocalActions(actions);
-  }, [actions]);
+  const onSave = () => {
+    console.log('SAVE DATA', localActions);
+  };
 
-  const patchAction = (actionId: string, field: ActionField, value: string, dv?: string) => {
+  const removeAction = (actionId: string) => {
+    setLocalActions(prev => prev.filter(action => action.guid !== actionId));
+  };
+
+  const addAction = () => {
+    setLocalActions(prev => [
+      ...prev,
+      {
+        guid: crypto.randomUUID(),
+        field: { value: '', displayValue: 'Select Field' },
+        mandatory: { value: 'ignore', displayValue: 'Leave Alone' },
+        visible: { value: 'ignore', displayValue: 'Leave Alone' },
+        disabled: { value: 'ignore', displayValue: 'Leave Alone' },
+        cleared: { value: false, displayValue: 'False' },
+      },
+    ]);
+  };
+
+  useEffect(() => setLocalActions(actions), [actions]);
+
+  const patchAction = (actionId: string, field: ActionField, value: string | boolean, dv?: string) => {
+    console.log('ACTION PATCH:', actionId, field, value, dv);
     setLocalActions(prev =>
       prev.map(action => {
         if (action.guid !== actionId) return action;
@@ -30,96 +49,73 @@ export function PolicyActions() {
     );
   };
 
+  const labelParent = 'pl-1 flex gap-1 items-center flex-1';
+  const labelClass = 'text-sm font-medium';
+  const iconClass = 'text-muted-foreground size-5';
+
   return (
     <div className="flex flex-col gap-4">
-      <h3>POLICY ACTIONS</h3>
-      {localActions.map(action => (
-        <PolicyRow
-          key={action.guid}
-          table={policy.table}
-          action={action}
-          fields={fields}
-          setFields={setFields}
-          onChange={patchAction}
-        />
-      ))}
+      <div className="flex gap-2 justify-between items-end">
+        <div>
+          <h3 className="text-lg font-bold tracking-tight flex gap-1 items-center">{policy.name}</h3>
+          <p className="text-muted-foreground">Modify UI policy actions or add new ones. Press save once done.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={addAction}>
+            <BadgePlus /> Add Action{' '}
+          </Button>
+          <Button onClick={onSave}>
+            <Save /> Save
+          </Button>
+        </div>
+      </div>
+      <hr></hr>
+      {localActions.length > 0 ? (
+        <>
+          <div className="flex gap-2 mb-[-10px]">
+            <div className={labelParent}>
+              <RectangleEllipsis className={iconClass} />
+              <div className={labelClass}>Field</div>
+            </div>
+            <div className={labelParent}>
+              <Asterisk className={iconClass} />
+              <div className={labelClass}>Mandatory</div>
+            </div>
+            <div className={labelParent}>
+              <Glasses className={iconClass} />
+              <div className={labelClass}>Visible</div>
+            </div>
+            <div className={labelParent}>
+              <PencilOff className={iconClass} />
+              <div className={labelClass}>Readonly</div>
+            </div>
+            <div className="min-w-[80px] flex flex-col">
+              <div className={labelClass}>Clear Value</div>
+            </div>
+            <div className="min-w-[50px]"></div>
+          </div>
+          {localActions.map(action => (
+            <PolicyRow
+              key={action.guid}
+              table={policy.table}
+              action={action}
+              fields={fields}
+              setFields={setFields}
+              onChange={patchAction}
+              onRemove={removeAction}
+            />
+          ))}
+        </>
+      ) : (
+        <Alert>
+          <MessageCircleWarning className="mt-1" />
+          <AlertTitle className="text-lg">Take Action!</AlertTitle>
+          <AlertDescription>
+            This UI policy currently has no configured actions. Add one above to get started, and remember to press the
+            save button once you're finished.
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
-  );
-}
-
-function PolicyRow({
-  fields,
-  table,
-  action,
-  disabled,
-  onChange,
-  setFields,
-}: {
-  table: string;
-  action: PolicyAction;
-  fields: FieldsByTable;
-  disabled?: boolean;
-  setFields: React.Dispatch<React.SetStateAction<FieldsByTable>>;
-  onChange: (action: string, field: ActionField, value: string, displayValue?: string) => void;
-}) {
-  const onChangeWalkedField = (updated: Partial<{ field: string; fieldLabel?: string }>) => {
-    if (updated.field) onChange(action.guid, 'field', updated.field, updated.fieldLabel);
-  };
-
-  const onChangeActionField = (field: ActionField, value: string) => {
-    onChange(action.guid, field, value);
-  };
-
-  return (
-    <div className="flex gap-2 items-center">
-      <SnDotwalkChoice
-        className="flex-1"
-        label={action.field.displayValue}
-        baseTable={table}
-        disabled={disabled}
-        fieldsByTable={fields}
-        setFieldsByTable={setFields}
-        onChange={onChangeWalkedField}
-      />
-      <PolicyFieldAction field="mandatory" value={action.mandatory.value} onChange={onChangeActionField} />
-      <PolicyFieldAction field="visible" value={action.visible.value} onChange={onChangeActionField} />
-      <PolicyFieldAction field="disabled" value={action.disabled.value} onChange={onChangeActionField} />
-    </div>
-  );
-}
-
-function PolicyFieldAction({
-  value,
-  field,
-  disabled,
-  onChange,
-}: {
-  value: string;
-  field: ActionField;
-  disabled?: boolean;
-  onChange: (field: ActionField, value: string) => void;
-}) {
-  const [localValue, setLocalValue] = useState(value);
-  return (
-    <Select
-      disabled={disabled}
-      value={localValue}
-      onValueChange={val => {
-        setLocalValue(val);
-        startTransition(() => onChange(field, val));
-      }}
-    >
-      <SelectTrigger className="flex-1">
-        <SelectValue placeholder="Select an action" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          <SelectLabel>Policy Actions</SelectLabel>
-          <SelectItem value="ignore">Leave Alone</SelectItem>
-          <SelectItem value="true">True</SelectItem>
-          <SelectItem value="false">False</SelectItem>
-        </SelectGroup>
-      </SelectContent>
-    </Select>
   );
 }

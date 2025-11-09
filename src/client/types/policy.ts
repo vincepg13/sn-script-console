@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { PackageValueSchema } from './package';
 import { ScopeUpdateSchema } from '@/types/app';
-import { SnConditionMapSchema } from 'sn-shadcn-kit/table';
+import { SnConditionMap, SnConditionMapSchema } from 'sn-shadcn-kit/table';
 
 const ValuePair = z.object({
   value: z.string(),
@@ -35,3 +35,5 @@ export const PolicySchema = z.object({
 
 export type PolicyData = z.infer<typeof PolicySchema>;
 export type PolicyAction = z.infer<typeof PolicyActionSchema>;
+export type ActionField = 'field' | 'mandatory' | 'visible' | 'disabled' | 'cleared';
+export type FieldsByTable = Record<string, SnConditionMap>;
