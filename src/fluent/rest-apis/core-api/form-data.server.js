@@ -1,4 +1,6 @@
 (function process(/*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
+  if (!gs.hasRole('admin')) return response.setError(new sn_ws_err.BadRequestError('Unauthorised'));
+
   const table = request.pathParams.table;
   const guid = request.pathParams.id;
   const qry = request.queryParams.qry || '';
@@ -9,15 +11,11 @@
 
   var grTarget = sgu.getGlobalGr(table);
   if (guid == -1 && !sgu.grMethod(grTarget, 'canCreate'))
-    return response.setError(
-      new sn_ws_err.BadRequestError('You do not have access to create a record of this type')
-    );
+    return response.setError(new sn_ws_err.BadRequestError('You do not have access to create a record of this type'));
   if (guid != -1 && !sgu.grMethod(grTarget, 'get', [guid]))
     return response.setError(new sn_ws_err.BadRequestError('Record not found.'));
   if (guid != -1 && !sgu.grMethod(grTarget, 'canRead'))
-    return response.setError(
-      new sn_ws_err.BadRequestError('You are not authorised to view this record.')
-    );
+    return response.setError(new sn_ws_err.BadRequestError('You are not authorised to view this record.'));
 
   const esVersion = sgu.getEsMode(grTarget, table, guid);
   const instanceURI = gs.getProperty('glide.servlet.uri');
@@ -44,7 +42,7 @@
     date_format: sgu.getUserDateFormat(),
     theme: gs.getUser().getPreference('script_console.codemirror_theme') || 'atom',
     prettier: prettierConfig,
-    es_lint: util.getLintingConfig(esVersion)
+    es_lint: util.getLintingConfig(esVersion),
   };
 
   response.setStatus(200);

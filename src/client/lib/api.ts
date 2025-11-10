@@ -1,8 +1,8 @@
 import { StatsRes } from '@/types/stats';
 import { ScriptSchema } from '@/types/script';
-import { PolicySchema } from '@/types/policy';
 import { getAxiosInstance } from 'sn-shadcn-kit';
 import { ListRecords, ListRecordsSchema } from '@/types/list';
+import { PolicyActionData, PolicyActionResSchema, PolicySchema } from '@/types/policy';
 import { AppConfigSchema, ScopeUpdateSchema, UpdateSetSchema } from '@/types/app';
 import { PackageCreateRes, PackageUpdateSchema, PackageValueSchema } from '@/types/package';
 import {
@@ -26,6 +26,13 @@ type CloneRes = { guid: string; message: string };
 type MacroRes = { widgetId: string; uiFormatter: string; spFormatter: string };
 type MacroData = { formatter: string; macro: string; table: string; widget: string };
 type Dependency = { table: string; widget: string; dependency: string; linkTable: string };
+export type BatchItem = {
+  id: string;
+  url: string;
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  body: string;
+  headers: { name: string; value: string }[];
+};
 
 export async function getAppConfig(signal?: AbortSignal) {
   const axios = getAxiosInstance();
@@ -209,11 +216,17 @@ export async function setUpdateSet(updateSetId: string, signal?: AbortSignal) {
   return UpdateSetSchema.parse(response.data.result.returned);
 }
 
-export async function globalSave(table: string, recordID: string, data: Record<string, unknown>, signal?: AbortSignal) {
+export async function globalSave(
+  table: string,
+  recordID: string,
+  data: Record<string, unknown>,
+  signal?: AbortSignal,
+  customAction?: string
+) {
   const axios = getAxiosInstance();
   const res = await axios.post(
-    `/api/now/sp/uiaction/42df02e20a0a0b340080e61b551f2909`,
-    { table, recordID, data },
+    `/api/now/sp/uiaction/${customAction || '42df02e20a0a0b340080e61b551f2909'}`,
+    { table, recordID, data, sessionRotationTrigger: false },
     { signal }
   );
 
@@ -255,4 +268,22 @@ export async function changePackage(packageId: string, signal: AbortSignal) {
   const res = await axios.put(`${packageApi}/change`, { packageId }, { signal });
 
   return PackageValueSchema.parse(res.data.result);
+}
+
+export async function savePolicyActions(batchId: string, ordered: boolean, requests: BatchItem[], signal: AbortSignal) {
+  const axios = getAxiosInstance();
+  const batchRes = await axios.post(
+    'api/now/v1/batch',
+    { batch_request_id: batchId, enforce_order: ordered, rest_requests: requests },
+    { signal }
+  );
+
+  return batchRes;
+}
+
+export async function postPolicyActions(data: PolicyActionData, signal: AbortSignal) {
+  const axios = getAxiosInstance();
+
+  const policyRes = await axios.post(`${coreApi}/global_method/savePolicyActions`, { params: [data] }, { signal });
+  return PolicyActionResSchema.parse(policyRes.data.result.returned);
 }

@@ -1,10 +1,41 @@
-import { Trash } from 'lucide-react';
 import { Switch } from '../ui/switch';
 import { Button } from '../ui/button';
 import { useState, startTransition } from 'react';
 import { SnDotwalkChoice } from 'sn-shadcn-kit/table';
 import { ActionField, FieldsByTable, PolicyAction } from '@/types/policy';
+import { Asterisk, Eye, Lock, SquarePen, Trash } from 'lucide-react';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
+
+export function PolicyRowHeader({ disabled }: { disabled?: boolean }) {
+  const iconClass = 'text-muted-foreground size-5';
+  const labelParent = 'pl-1 flex gap-1 items-center flex-1';
+  const labelClass = `text-sm font-medium ${disabled ? 'text-muted-foreground' : ''}`;
+
+  return (
+    <div className="flex gap-2 mb-[-10px]">
+      <div className={labelParent}>
+        <SquarePen className={`${iconClass}`} />
+        <div className={labelClass}>Field</div>
+      </div>
+      <div className={labelParent}>
+        <Asterisk className={iconClass} />
+        <div className={labelClass}>Mandatory</div>
+      </div>
+      <div className={labelParent}>
+        <Eye className={iconClass} />
+        <div className={labelClass}>Visible</div>
+      </div>
+      <div className={labelParent}>
+        <Lock className={iconClass} />
+        <div className={labelClass}>Read only</div>
+      </div>
+      <div className="min-w-[80px] flex flex-col">
+        <div className={labelClass}>Clear Value</div>
+      </div>
+      {!disabled && <div className="min-w-[50px]"></div>}
+    </div>
+  );
+}
 
 export function PolicyRow({
   fields,
@@ -42,22 +73,40 @@ export function PolicyRow({
         setFieldsByTable={setFields}
         onChange={onChangeWalkedField}
       />
-      <PolicyFieldAction field="mandatory" value={action.mandatory.value} onChange={onChangeActionField} />
-      <PolicyFieldAction field="visible" value={action.visible.value} onChange={onChangeActionField} />
-      <PolicyFieldAction field="disabled" value={action.disabled.value} onChange={onChangeActionField} />
+      <PolicyFieldAction
+        field="mandatory"
+        value={action.mandatory.value}
+        onChange={onChangeActionField}
+        disabled={disabled}
+      />
+      <PolicyFieldAction
+        field="visible"
+        value={action.visible.value}
+        onChange={onChangeActionField}
+        disabled={disabled}
+      />
+      <PolicyFieldAction
+        field="disabled"
+        value={action.disabled.value}
+        onChange={onChangeActionField}
+        disabled={disabled}
+      />
       <div className="min-w-[80px] flex flex-col">
         <div className="w-full flex justify-center">
           <Switch
+            disabled={disabled}
             checked={action.cleared.value}
             onCheckedChange={val => onChange(action.guid, 'cleared', val, String(val))}
           />
         </div>
       </div>
-      <div className="min-w-[50px] flex justify-center">
-        <Button variant="trash" size="icon" onClick={() => onRemove(action.guid)}>
-          <Trash />
-        </Button>
-      </div>
+      {!disabled && (
+        <div className="min-w-[50px] flex justify-center">
+          <Button variant="trash" size="icon" onClick={() => onRemove(action.guid)}>
+            <Trash />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

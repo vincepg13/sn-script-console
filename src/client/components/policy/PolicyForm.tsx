@@ -8,7 +8,7 @@ import { useEffect, useEffectEvent, useState } from 'react';
 export default function PolicyForm() {
   const table = 'sys_ui_policy';
   const [formMounted, setFormMounted] = useState(false);
-  const { policy, withinScope, isLoading, isFetching } = usePolicy();
+  const { policy, inScope, isLoading, isFetching, refetch } = usePolicy();
 
   const { guid } = policy;
   const apis = getApi(table, guid, 'advanced');
@@ -16,7 +16,7 @@ export default function PolicyForm() {
   const unmountEvent = useEffectEvent(() => {
     if (formMounted) setFormMounted(false);
   });
-  useEffect(() => unmountEvent(), [withinScope]);
+  useEffect(() => unmountEvent(), [inScope]);
 
   if (!formMounted && (isLoading || isFetching)) return <GeneralLoader />;
 
@@ -30,6 +30,7 @@ export default function PolicyForm() {
           apis={apis}
           enableAttachments={false}
           snMount={() => setFormMounted(true)}
+          snSubmit={() => refetch()}
         />
       </CardContent>
     </Card>

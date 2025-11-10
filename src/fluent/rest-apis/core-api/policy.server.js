@@ -1,6 +1,7 @@
 (function process(/*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
-  const guid = request.pathParams.id;
+  if (!gs.hasRole('admin')) return response.setError(new sn_ws_err.BadRequestError('Unauthorised'));
 
+  const guid = request.pathParams.id;
   const util = new ScriptConsoleUtils();
   const sgu = util.sgu;
 
@@ -11,12 +12,13 @@
 
   const grAction = sgu.getGlobalGr('sys_ui_policy_action');
   grAction.addQuery('ui_policy', guid);
+  grAction.orderByDesc('sys_updated_on');
   sgu.grMethod(grAction, 'query');
 
   const actions = [];
   const getValuePair = (gr, fieldName) => ({
     value: sgu.grMethod(gr, 'getValue', [fieldName]),
-    displayValue: sgu.grMethod(gr, 'getDisplayValue', [fieldName])
+    displayValue: sgu.grMethod(gr, 'getDisplayValue', [fieldName]),
   });
 
   while (grAction.next()) {
@@ -26,7 +28,7 @@
       mandatory: getValuePair(grAction, 'mandatory'),
       visible: getValuePair(grAction, 'visible'),
       disabled: getValuePair(grAction, 'disabled'),
-      cleared: getValuePair(grAction, 'cleared')
+      cleared: getValuePair(grAction, 'cleared'),
     });
   }
 
@@ -35,7 +37,7 @@
     actions: actions,
     table: sgu.grMethod(grPolicy, 'getValue', ['table']),
     scope: sgu.grMethod(grPolicy, 'getValue', ['sys_scope']),
-    name: sgu.grMethod(grPolicy, 'getDisplayValue', ['short_description'])
+    name: sgu.grMethod(grPolicy, 'getDisplayValue', ['short_description']),
   };
 
   const scopeChange = sgu.autoScopeSwitch(grPolicy);

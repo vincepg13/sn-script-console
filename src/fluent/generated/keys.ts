@@ -67,6 +67,10 @@ declare global {
             id: '227990a483d4b25025451429feaad355';
             deleted: true;
           };
+          '22c694cf83c1b25025451429feaad342': {
+            table: 'sys_scope_privilege';
+            id: '22c694cf83c1b25025451429feaad342';
+          };
           '22d0a8208334f21025451429feaad34e': {
             table: 'sys_scope_privilege';
             id: '22d0a8208334f21025451429feaad34e';
@@ -715,7 +719,11 @@ declare global {
           'x_659318_script/codemirror-BMcGKAcw': {
             table: 'sys_ux_lib_asset';
             id: '30236212400e4e46b8f745668778dbf3';
-            deleted: false;
+            deleted: true;
+          };
+          'x_659318_script/codemirror-CfxPjbuq': {
+            table: 'sys_ux_lib_asset';
+            id: '25f616e3d7884a8da237ef7f8414c023';
           };
           'x_659318_script/codemirror-D45-6cmy': {
             table: 'sys_ux_lib_asset';
@@ -752,6 +760,10 @@ declare global {
             id: '827f61666bb6468a92cfb3a7fb1ded3c';
             deleted: false;
           };
+          'x_659318_script/tiptap-BMcX5Y0k': {
+            table: 'sys_ux_lib_asset';
+            id: '064925b51d44476b8d2123e74beb67a5';
+          };
           'x_659318_script/tiptap-ButrOpM4': {
             table: 'sys_ux_lib_asset';
             id: 'fe8535ebe8a54b89a748ce0686482dde';
@@ -770,7 +782,7 @@ declare global {
           'x_659318_script/tiptap-V-fDKZOk': {
             table: 'sys_ux_lib_asset';
             id: '5ae1a98cd356499a962cd86165f526c3';
-            deleted: false;
+            deleted: true;
           };
         };
         composite: [

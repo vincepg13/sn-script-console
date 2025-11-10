@@ -1,4 +1,6 @@
 (function process(/*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
+  if (!gs.hasRole('admin')) return response.setError(new sn_ws_err.BadRequestError('Unauthorised'));
+
   const widgetId = request.pathParams.widget;
   const cloneId = request.body.data.id;
   const cloneName = request.body.data.name;

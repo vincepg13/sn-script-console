@@ -1,4 +1,6 @@
 (function process(/*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
+  if (!gs.hasRole('admin')) return response.setError(new sn_ws_err.BadRequestError('Unauthorised'));
+
   const widgetId = request.pathParams.widget;
   const table = request.pathParams.table;
   const displayField = request.pathParams.field;
@@ -10,5 +12,4 @@
   const util = new ScriptConsoleUtils();
   const dependencies = util.getWidgetDependencies(table, widgetId, displayField);
   return response.setBody({ dependencies });
-  
 })(request, response);

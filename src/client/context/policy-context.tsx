@@ -4,7 +4,7 @@ import { getPolicyData } from '@/lib/api';
 import { useAppData } from './app-context';
 import { PolicyAction } from '@/types/policy';
 import { SnConditionMap } from 'sn-shadcn-kit/table';
-import { createContext, useContext, useMemo } from 'react';
+import { createContext, useCallback, useContext, useMemo } from 'react';
 import { useSharedRouteConfig } from '@/hooks/useSharedConfig';
 import { GeneralLoader } from '@/components/generic/GeneralLoader';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -14,8 +14,9 @@ interface PolicyContextValue {
   actions: PolicyAction[];
   isFetching: boolean;
   isLoading: boolean;
-  withinScope: boolean;
+  inScope: boolean;
   refetch: () => void;
+  patchActions: (valueOrUpdater: PolicyAction[] | ((prev: PolicyAction[]) => PolicyAction[])) => void;
 }
 
 const PolicyContext = createContext<PolicyContextValue | undefined>(undefined);
@@ -38,7 +39,24 @@ export const PolicyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const { config } = useAppData();
   const inScope = useMemo(() => data?.scope === config.scope.value, [data?.scope, config.scope.value]);
-  
+
+  const patchActions = useCallback(
+    (valueOrUpdater: PolicyAction[] | ((prev: PolicyAction[]) => PolicyAction[])) => {
+      if (!id) return;
+
+      qc.setQueryData<Awaited<ReturnType<typeof getPolicyData>>>(['policyData', id], old => {
+        if (!old) return old; // nothing cached yet
+        const next =
+          typeof valueOrUpdater === 'function'
+            ? (valueOrUpdater as (prev: PolicyAction[]) => PolicyAction[])(old.actions)
+            : valueOrUpdater;
+
+        return { ...old, actions: next };
+      });
+    },
+    [qc, id]
+  );
+
   const value = useMemo<PolicyContextValue | undefined>(() => {
     if (!data) return undefined;
     return {
@@ -49,13 +67,14 @@ export const PolicyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         scope: data.scope,
         meta: data.tableMeta,
       },
-      withinScope: inScope,
-      actions: data.actions,
+      inScope,
       isFetching,
       isLoading,
+      actions: data.actions,
       refetch,
+      patchActions,
     };
-  }, [data, isFetching, isLoading, inScope, refetch]);
+  }, [data, isFetching, isLoading, inScope, refetch, patchActions]);
 
   if (isLoading) return <GeneralLoader />;
 

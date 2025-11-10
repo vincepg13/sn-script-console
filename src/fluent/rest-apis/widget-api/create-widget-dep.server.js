@@ -1,8 +1,10 @@
 (function process(/*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
+  if (!gs.hasRole('admin')) return response.setError(new sn_ws_err.BadRequestError('Unauthorised'));
+
   const table = request.body.data.table;
   const widgetId = request.body.data.widget;
   const dependencyId = request.body.data.dependency;
-  
+
   if (!table || !widgetId || !dependencyId) {
     return response.setError(new sn_ws_err.BadRequestError('A valid table, widget and dependency should be provided'));
   }
@@ -23,5 +25,4 @@
 
   const dependencies = util.getWidgetDependencies(table, widgetId, displayTable);
   return response.setBody({ success: true, dependencies });
-  
 })(request, response);
