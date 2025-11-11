@@ -5,11 +5,23 @@ import { errorHandler } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { postPolicyActions } from '@/lib/api';
 import { usePolicy } from '@/context/policy-context';
+import { objectEquals } from '@observ33r/object-equals';
 import { PolicyRow, PolicyRowHeader } from './PolicyActionRow';
 import { useCancelableFn } from '@/hooks/useAbortableController';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { BadgePlus, MessageCircleWarning, Save } from 'lucide-react';
 import { ActionField, FieldsByTable, PolicyAction, PolicyActionData, PolicyActionItem } from '@/types/policy';
+
+const normalize = (arr: PolicyAction[]) => {
+  return arr.map(a => ({
+    ...a,
+    mandatory: a.mandatory.value,
+    visible: a.visible.value,
+    disabled: a.disabled.value,
+    cleared: a.cleared.value,
+    field: a.field.value,
+  }));
+};
 
 const buildActionBody = (action: PolicyAction, table?: string, policyGuid?: string, policyScope?: string) => {
   const actionBody: PolicyActionItem = {
@@ -29,7 +41,7 @@ const buildActionBody = (action: PolicyAction, table?: string, policyGuid?: stri
 };
 
 export function PolicyActions() {
-  const { policy, inScope, actions, patchActions } = usePolicy();
+  const { policy, inScope, actions, patchActions, registerDirtyChecker } = usePolicy();
 
   const [saving, setSaving] = useState(false);
   const [localActions, setLocalActions] = useState(actions);
@@ -54,6 +66,13 @@ export function PolicyActions() {
   };
 
   useEffect(() => setLocalActions(actions), [actions]);
+
+  // Register difference checker
+  useEffect(() => {
+    const fn = () => !objectEquals(normalize(actions), normalize(localActions));
+    registerDirtyChecker(fn);
+    return () => registerDirtyChecker(() => false);
+  }, [actions, localActions, registerDirtyChecker]);
 
   const patchAction = (actionId: string, field: ActionField, value: string | boolean, dv?: string) => {
     setLocalActions(prev =>

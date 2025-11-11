@@ -28,7 +28,7 @@ You can install Script Console in two ways:
 
 If you're planning to use the application as-is, this is the simplest and recommended approach.
 
-1. Download the latest [update set](/public/Script%20Console%20V1.0.2.xml) from the public folder of this repository or from [ServiceNow Share](https://developer.servicenow.com/connect.do#!/share/contents/1722570_script_console?t=PRODUCT_DETAILS).
+1. Download the latest [update set](/public/Script%20Console%20V1.1.0.xml) from the public folder of this repository or from [ServiceNow Share](https://developer.servicenow.com/connect.do#!/share/contents/1722570_script_console?t=PRODUCT_DETAILS).
 2. Import and commit it to your ServiceNow instance via the **Update Sets** module.
 
 That’s it! The update set installs one file in the global scope - a script include named `ScriptConsoleG` - and the scoped application **Script Console**.
@@ -113,7 +113,7 @@ The content pane houses the router outlet and displays the active route’s cont
 
 ## 🧠 Routes
 
-Script Console operates with five main routes: **home**, **list**, **script**, **widget_editor**, and **form**.
+Script Console operates with six main routes: **home**, **list**, **script**, **widget_editor**, **policy** and **form**.
 
 ### `Homepage`
 
@@ -202,9 +202,20 @@ _Figure 7: Script Console Widget Editor_
 
 ---
 
+### `/policy`
+
+The **policy** route allows you to configure a UI policy. On this page you can modify both the UI policy itself, represented in a form component, as well as its policy actions. The action builder can be seen in figure 8 below. You can make use of this component to add, remove and modify all policy actions at the same time, just remember to click save once you are finished. 
+
+A policy can be added/removed from your current package by using the package manager icon in the top left, or you can open the UI policy in the instance view by using the icon in the top right.
+
+![Policy Actions Dark](/public/screenshots/policy_dark.png)  
+_Figure 8: Script Console Policy Action Builder, dark mode_
+
+---
+
 ### `/list` and `/form`
 
-The **List** route is linked to by the navigation menu items and displays the records for a given table. Selecting a record opens it in the script editor. On the table you can filter by doing a text search for the display field, or clicking the filter icon next to the input to do an advanced search. There is also an icon allowing you to open that table in the main instance which is handy if you want to create a new record etc.
+The **List** route is linked to by the navigation menu items and displays the records for a given table. Selecting a record opens it in the script editor. On the table you can filter by doing a text search for the display field, or clicking the filter icon next to the input to do an advanced search. As well as this, you can personalise your list view, and there is also an icon allowing you to open that table in the main instance which is handy if you want to create a new record etc.
 
 If a record can’t be displayed in the script route (for example, no script field exists), the app gracefully falls back to the **Form** route, showing the full ServiceNow form.
 

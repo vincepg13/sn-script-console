@@ -4,7 +4,7 @@ import { getPolicyData } from '@/lib/api';
 import { useAppData } from './app-context';
 import { PolicyAction } from '@/types/policy';
 import { SnConditionMap } from 'sn-shadcn-kit/table';
-import { createContext, useCallback, useContext, useMemo } from 'react';
+import { createContext, useCallback, useContext, useMemo, useRef } from 'react';
 import { useSharedRouteConfig } from '@/hooks/useSharedConfig';
 import { GeneralLoader } from '@/components/generic/GeneralLoader';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -16,6 +16,8 @@ interface PolicyContextValue {
   isLoading: boolean;
   inScope: boolean;
   refetch: () => void;
+  checkDirty: () => boolean;
+  registerDirtyChecker: (fn: () => boolean) => void;
   patchActions: (valueOrUpdater: PolicyAction[] | ((prev: PolicyAction[]) => PolicyAction[])) => void;
 }
 
@@ -33,6 +35,20 @@ export const policyDataQuery = (guid: string) => ({
 export const PolicyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const qc = useQueryClient();
   const { id } = useParams<{ table: string; id: string }>();
+
+  const checkerRef = useRef<() => boolean>(() => false);
+
+  const registerDirtyChecker = useCallback((fn: () => boolean) => {
+    checkerRef.current = fn || (() => false);
+  }, []);
+
+  const checkDirty = useCallback(() => {
+    try {
+      return !!checkerRef.current();
+    } catch {
+      return false;
+    }
+  }, []);
 
   const { data, isLoading, error, isFetching, refetch } = useQuery(policyDataQuery(id!));
   useSharedRouteConfig(data, isFetching, qc);
@@ -72,9 +88,11 @@ export const PolicyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       isLoading,
       actions: data.actions,
       refetch,
+      checkDirty,
       patchActions,
+      registerDirtyChecker,
     };
-  }, [data, isFetching, isLoading, inScope, refetch, patchActions]);
+  }, [data, inScope, isFetching, isLoading, refetch, checkDirty, patchActions, registerDirtyChecker]);
 
   if (isLoading) return <GeneralLoader />;
 
