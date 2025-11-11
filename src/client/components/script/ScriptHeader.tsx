@@ -1,9 +1,7 @@
 import { toast } from 'sonner';
-import { Link } from 'react-router';
 import { Button } from '../ui/button';
 import { globalSave } from '@/lib/api';
 import { errorHandler } from '@/lib/utils';
-import { instanceURI } from '@/lib/config';
 import { Separator } from '../ui/separator';
 import { useCallback, useState } from 'react';
 import { ToolbarButtons } from './ToolbarButtons';
@@ -12,9 +10,10 @@ import { SimpleTooltip } from '../generic/SimpleTooltip';
 import { useSaveShortcut } from '@/hooks/useSaveShortcut';
 import { RecordVersions } from '../generic/RecordVersions';
 import { LoadingSpinner } from '../generic/LoadingSpinner';
-import { History, Save, SquareArrowOutUpRight } from 'lucide-react';
+import { History, Save } from 'lucide-react';
 import { ScriptPickers } from './ScriptPickers';
 import { useAppConfig } from '@/context/app-context';
+import { OpenInInstance } from '../generic/OpenInInstance';
 
 export function ScriptHeader() {
   const [saving, setSaving] = useState(false);
@@ -59,18 +58,7 @@ export function ScriptHeader() {
           <History />
         </Button>
       </SimpleTooltip>
-      <SimpleTooltip content="Open in instance">
-        <Button variant="outline" size="icon" asChild>
-          <Link
-            to={`${instanceURI}/${table}.do?sys_id=${guid}`}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center"
-          >
-            <SquareArrowOutUpRight />
-          </Link>
-        </Button>
-      </SimpleTooltip>
+      <OpenInInstance table={table} guid={guid} />
       {canWrite && (
         <Button onClick={onSave}>
           {saving ? <LoadingSpinner className="text-primary-foreground" /> : <Save />} Save

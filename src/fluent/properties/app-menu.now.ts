@@ -29,6 +29,11 @@ Property({
         "title": "UI Scripts",
         "href": "/list/sys_ui_script",
         "description": "Package client-side JavaScript to be reused and executed from client scripts and other client side objects."
+      },
+      {
+        "title": "UI Policies",
+        "href": "/list/sys_ui_policy",
+        "description": "Modify field visibility and behaviour via actions or with scripts."
       }
     ]
   },

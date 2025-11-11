@@ -116,10 +116,13 @@ export function WidgetEditor() {
       <div className="flex flex-1 min-h-0 overflow-y-hidden overflow-x-auto">
         {widget.toggleButtons
           .filter(e => e.visible)
-          .map((e, _i, arr) => {
+          .map((e, i, arr) => {
             const target = widget.fields[e.field];
             return (
-              <div className="flex min-h-0 min-w-[450px] flex-1 flex-col overflow-hidden border" key={target.name}>
+              <div
+                className={`flex min-h-0 min-w-[450px] flex-1 flex-col overflow-hidden border border-s-0 ${i === arr.length - 1 ? 'border-e-0' : ''}`}
+                key={target.name}
+              >
                 <SnScriptEditor
                   key={target.name}
                   height="100%"

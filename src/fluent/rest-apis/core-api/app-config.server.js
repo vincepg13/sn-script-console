@@ -1,6 +1,7 @@
 (function process(/*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
-  const gUser = gs.getUser();
+  if (!gs.hasRole('admin')) return response.setError(new sn_ws_err.BadRequestError('Unauthorised'));
 
+  const gUser = gs.getUser();
   const util = (() => {
     try {
       return new ScriptConsoleUtils();
@@ -19,7 +20,7 @@
 
   const user = {
     username: gs.getUserName(),
-    guid: gs.getUserID()
+    guid: gs.getUserID(),
   };
 
   const appDataConfig = { scope, updateSet, user };
@@ -29,7 +30,7 @@
     sidebarOpen: gUser.getPreference('script_console.sidebar_open') || 'true',
     autoScopeSwitch: gUser.getPreference('script_console.scope_switch') || 'false',
     autoPackageAdd: gUser.getPreference('script_console.package_add') || 'false',
-    directToWidget: gUser.getPreference('script_console.direct_widget') || 'false'
+    directToWidget: gUser.getPreference('script_console.direct_widget') || 'false',
   };
 
   //Set prettier config to default and override if custom options available
@@ -42,7 +43,7 @@
   const currentPackage = gUser.getPreference('script_console.current_package') || '';
   appDataConfig.packageData = {
     currentPackage,
-    packages: util.getMyPackages()
+    packages: util.getMyPackages(),
   };
 
   appDataConfig.packageData.packageItems = currentPackage ? util.getPackageItems(currentPackage) : {};

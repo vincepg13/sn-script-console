@@ -1,4 +1,6 @@
 (function process(/*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
+  if (!gs.hasRole('admin')) return response.setError(new sn_ws_err.BadRequestError('Unauthorised'));
+
   const util = new ScriptConsoleUtils();
   const fallbackTables = request.queryParams.tables;
 
@@ -13,7 +15,7 @@
         .split(',')
         .map(t => t.trim())
         .filter(Boolean)
-    )
+    ),
   ];
 
   const stats = util.getDeveloperStats(tables);

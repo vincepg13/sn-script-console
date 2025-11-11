@@ -1,4 +1,6 @@
 (function process(/*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
+  if (!gs.hasRole('admin')) return response.setError(new sn_ws_err.BadRequestError('Unauthorised'));
+
   const table = request.pathParams.table;
   const sgu = new global.ScriptConsoleG();
   const displayField = sgu.getReferenceDisplay(table);

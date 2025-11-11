@@ -1,4 +1,6 @@
 (function process(/*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
+  if (!gs.hasRole('admin')) return response.setError(new sn_ws_err.BadRequestError('Unauthorised'));
+
   const table = request.pathParams.table;
   const gr = new GlideRecord(table);
 
@@ -10,6 +12,8 @@
   const page = +(request.queryParams.page || 0);
   const pageSize = +(request.queryParams.pageSize || 10);
 
-  const tableData = new global.ScriptConsoleG().getTableData(gr, page, pageSize, query);
-  response.setBody(tableData);
+  const sgu = new global.ScriptConsoleG();
+  const listMechanic = sgu.getListMechanic(table);
+  const tableData = sgu.getTableData(gr, page, pageSize, query);
+  response.setBody({ ...tableData, listMechanic });
 })(request, response);

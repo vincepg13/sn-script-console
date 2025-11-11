@@ -5,16 +5,16 @@ import '@/polyfills/array-entries.ts';
 import React from 'react';
 import './index.build.css';
 import { makeRouter } from './router';
-import ReactDOM, { Root } from 'react-dom/client';
-import { RouterProvider } from 'react-router';
 import { queryClient } from './queryClient';
+import { RouterProvider } from 'react-router';
 import { configQuery } from './lib/init-shadkit';
+import ReactDOM, { Root } from 'react-dom/client';
 import { FontProvider } from './context/font-context';
 import { ThemeProvider } from './context/theme-context';
-import { QueryClientProvider, useSuspenseQuery } from '@tanstack/react-query';
 import { AppProvider } from './context/app-context.tsx';
-import { broadcastQueryClient } from '@tanstack/query-broadcast-client-experimental';
 import FatalError from './routes/errors/FatalError.tsx';
+import { QueryClientProvider, useSuspenseQuery } from '@tanstack/react-query';
+import { broadcastQueryClient } from '@tanstack/query-broadcast-client-experimental';
 
 broadcastQueryClient({
   queryClient,

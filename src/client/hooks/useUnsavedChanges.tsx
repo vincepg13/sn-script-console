@@ -22,7 +22,6 @@ export function useUnsavedChanges(isBlocked: boolean) {
     useCallback((event) => {
       if (!isBlocked) return
       event.preventDefault()
-      event.returnValue = ''
     }, [isBlocked])
   )
 

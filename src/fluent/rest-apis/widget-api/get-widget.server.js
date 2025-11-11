@@ -1,4 +1,6 @@
 (function process(/*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
+  if (!gs.hasRole('admin')) return response.setError(new sn_ws_err.BadRequestError('Unauthorised'));
+
   const guid = request.pathParams.id;
   const grWidget = new GlideRecordSecure('sp_widget');
   const fields = ['name', 'id', 'template', 'css', 'client_script', 'script', 'link', 'option_schema'];
@@ -31,7 +33,7 @@
       { label: 'CSS', field: 'css', parser: 'scss', visible: toggled.includes('css') },
       { label: 'Client', field: 'client_script', parser: 'babel', visible: toggled.includes('client_script') },
       { label: 'Server', field: 'script', parser: 'babel', visible: toggled.includes('script') },
-      { label: 'Link', field: 'link', visible: toggled.includes('link') }
+      { label: 'Link', field: 'link', visible: toggled.includes('link') },
     ];
 
     data.toggleButtons.forEach(function (b) {
@@ -40,7 +42,7 @@
 
     data.security = {
       canWrite: grWidget.canWrite(),
-      canDelete: grWidget.canDelete()
+      canDelete: grWidget.canDelete(),
     };
 
     ((data.esVersion = util.sgu.getEsMode(grWidget, 'sp_widget', grWidget.getUniqueValue())),

@@ -14,17 +14,17 @@ import {
   Updater,
 } from 'sn-shadcn-kit/table';
 
-const getGenericColumn = (id: string, label: string): ColumnDef<SnRow, SnRowItem> => ({
+const getGenericColumn = (id: string, label: string, classes?: string): ColumnDef<SnRow, SnRowItem> => ({
   id,
   accessorKey: id,
-  cell: ({ getValue }) => <div className="truncate text-left">{getValue().display_value}</div>,
-  header: ({ column }) => <DataTableColumnHeader column={column} title={label} />,
+  cell: ({ getValue }) => <div className={`truncate text-left ${classes}`}>{getValue().display_value}</div>,
+  header: ({ column }) => <DataTableColumnHeader column={column} title={label} className={classes} />,
 });
 
 export function getColumns(fields: FieldHeader[]) {
-  return fields.map(field => {
+  return fields.map((field, index) => {
     const { name, label } = field;
-    return getGenericColumn(name, label);
+    return getGenericColumn(name, label, index === 0 ? 'pl-2' : '');
   });
 }
 
@@ -60,9 +60,10 @@ export function ViewTable() {
   //Open the record tab when a row is clicked
   const openRecord = (row: Row<SnRow>) => {
     const guid = row.original.sys_id?.value;
+    const isPolicy = table === 'sys_ui_policy';
 
     if (guid) {
-      navigate(`/script/${table}/${guid}`);
+      navigate(isPolicy ? `/policy/${guid}` : `/script/${table}/${guid}`);
     }
   };
 

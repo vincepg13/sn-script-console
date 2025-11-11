@@ -13,6 +13,7 @@ export function ListSkeleton() {
           <Skeleton className="h-10 w-60 rounded-md" />
           <Skeleton className="h-10 w-10 rounded-md" />
           <Skeleton className="h-10 w-10 rounded-md" />
+          <Skeleton className="h-10 w-10 rounded-md" />
         </div>
       </div>
       <SnDataTableSkeleton columnCount={5} rowCount={10} />
