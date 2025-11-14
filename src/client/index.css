@@ -32,6 +32,14 @@ body {
     color: var(--foreground) !important;
   }
 
+  .dark {
+    .group-data-\[side\=left\]\:border-r {
+      &:is(:where(.group)[data-side='left'] *) {
+        border-color: oklch(0.24 0.03 273.57 / 1);
+      }
+    }
+  }
+
   html {
     background: var(--background) !important;
     color: var(--foreground) !important;

@@ -35,7 +35,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar>
+    <Sidebar className="!bg-red">
       <SidebarHeader className="py-4">
         <SidebarMenu>
           <SidebarMenuItem>
