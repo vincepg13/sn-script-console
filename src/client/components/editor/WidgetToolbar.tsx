@@ -16,14 +16,17 @@ import { LoadingSpinner } from '../generic/LoadingSpinner';
 import { GeneralConfirm } from '../generic/GeneralConfirm';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { useAppData } from '@/context/app-context';
 
 export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => void }) {
   const navigate = useNavigate();
   const [confirm, setConfirm] = useState('');
 
-  const { widget, saveData, isFetching, applySavedChanges, toggleFieldVisibility } = useWidget();
+  const { widget, saveData, isFetching, applySavedChanges, getScriptRef, toggleFieldVisibility } = useWidget();
   const { canWrite, canDelete } = widget.security;
   const controllerRef = useRef(new AbortController());
+
+  const { prettierConfig } = useAppData().config;
 
   const resetController = () => {
     controllerRef.current.abort();
@@ -47,18 +50,32 @@ export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => v
     resetController();
 
     try {
-      const result = await saveWidget(widget.guid, saveData, controllerRef.current.signal);
+      const localSaveData = { ...saveData };
+
+      if (prettierConfig?.formatOnSave) {
+        const scriptFields = ['script', 'client_script', 'template', 'css', 'link'] as const;
+
+        for (const fieldName of scriptFields) {
+          const scriptRef = getScriptRef(fieldName).current;
+          await scriptRef?.format?.();
+          localSaveData[fieldName] = scriptRef?.getRawValue() || '';
+        }
+      }
+
+      const result = await saveWidget(widget.guid, localSaveData, controllerRef.current.signal);
+
       if (result) {
         toast.success('Widget saved');
-        applySavedChanges(saveData);
+        applySavedChanges(localSaveData);
       } else {
         setSaveFlag?.(false);
       }
+      
     } catch (e) {
       setSaveFlag?.(false);
       errorHandler(e, 'Failed to save widget');
     }
-  }, [applySavedChanges, setSaveFlag, saveData, widget.guid]);
+  }, [prettierConfig, widget.guid, saveData, setSaveFlag, applySavedChanges, getScriptRef]);
 
   useSaveShortcut({ enabled: canWrite, onTrigger: onSave });
 
