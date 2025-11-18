@@ -74,7 +74,7 @@ export function PackageManager({ onChange, resync }: { onChange: (pkgId: string)
       ) : (
         <div className="flex items-center gap-1 px-2">
           <Select value={currentPackage} onValueChange={onPackageChange}>
-            <SelectTrigger className="flex-1">
+            <SelectTrigger className="flex-1 truncate">
               <SelectValue placeholder="Select a package" />
             </SelectTrigger>
             <SelectContent>

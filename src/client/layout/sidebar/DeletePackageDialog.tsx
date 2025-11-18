@@ -46,7 +46,7 @@ export function DeletePackageDialog({ pkgName, pkgId, open, setOpen, onDelete }:
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogContent>
+      <AlertDialogContent className="text-accent-foreground">
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>

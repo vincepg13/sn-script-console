@@ -29,7 +29,7 @@ export function GeneralConfirm({
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogContent>
+      <AlertDialogContent className="text-accent-foreground">
         <AlertDialogHeader>
           <AlertDialogTitle>{title || 'Are you absolutely sure?'}</AlertDialogTitle>
           <AlertDialogDescription>{msg}</AlertDialogDescription>

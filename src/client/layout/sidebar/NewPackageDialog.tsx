@@ -89,7 +89,7 @@ export function NewPackageDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] text-accent-foreground">
         <DialogHeader>
           <DialogTitle>{isCreate ? 'New Package' : 'Rename Package'}</DialogTitle>
           <DialogDescription>

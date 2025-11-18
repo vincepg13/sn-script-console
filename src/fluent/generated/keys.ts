@@ -716,6 +716,10 @@ declare global {
             id: '1e60df39eac24ab3aaf0d3745ff3a8a4';
             deleted: true;
           };
+          'x_659318_script/codemirror-BJNGyW3T': {
+            table: 'sys_ux_lib_asset';
+            id: '1a3cd2dc1e284155a016ef5829bf25af';
+          };
           'x_659318_script/codemirror-BMcGKAcw': {
             table: 'sys_ux_lib_asset';
             id: '30236212400e4e46b8f745668778dbf3';
@@ -724,6 +728,12 @@ declare global {
           'x_659318_script/codemirror-CfxPjbuq': {
             table: 'sys_ux_lib_asset';
             id: '25f616e3d7884a8da237ef7f8414c023';
+            deleted: true;
+          };
+          'x_659318_script/codemirror-CtGP2Bwb': {
+            table: 'sys_ux_lib_asset';
+            id: '31d30a6ea21347269be4487bbe5d2b4d';
+            deleted: true;
           };
           'x_659318_script/codemirror-D45-6cmy': {
             table: 'sys_ux_lib_asset';
@@ -763,6 +773,12 @@ declare global {
           'x_659318_script/tiptap-BMcX5Y0k': {
             table: 'sys_ux_lib_asset';
             id: '064925b51d44476b8d2123e74beb67a5';
+            deleted: true;
+          };
+          'x_659318_script/tiptap-Bt41lgAB': {
+            table: 'sys_ux_lib_asset';
+            id: '6a81131ba05441cc8271ecd4c87e257d';
+            deleted: true;
           };
           'x_659318_script/tiptap-ButrOpM4': {
             table: 'sys_ux_lib_asset';
@@ -773,6 +789,10 @@ declare global {
             table: 'sys_ux_lib_asset';
             id: '99439b5f8c9d4dedbcf61dab25e8b4b8';
             deleted: true;
+          };
+          'x_659318_script/tiptap-CkQhA0l7': {
+            table: 'sys_ux_lib_asset';
+            id: '29abb0e9e152408c8b61245afa512792';
           };
           'x_659318_script/tiptap-DWTDQtD_': {
             table: 'sys_ux_lib_asset';

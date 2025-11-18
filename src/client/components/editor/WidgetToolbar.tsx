@@ -16,14 +16,18 @@ import { LoadingSpinner } from '../generic/LoadingSpinner';
 import { GeneralConfirm } from '../generic/GeneralConfirm';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { useAppData } from '@/context/app-context';
 
 export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => void }) {
   const navigate = useNavigate();
   const [confirm, setConfirm] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  const { widget, saveData, isFetching, applySavedChanges, toggleFieldVisibility } = useWidget();
+  const { widget, saveData, isFetching, applySavedChanges, getScriptRef, toggleFieldVisibility } = useWidget();
   const { canWrite, canDelete } = widget.security;
   const controllerRef = useRef(new AbortController());
+
+  const { prettierConfig } = useAppData().config;
 
   const resetController = () => {
     controllerRef.current.abort();
@@ -43,22 +47,40 @@ export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => v
   }, [navigate, widget.guid]);
 
   const onSave = useCallback(async () => {
+    setSaving(true);
     setSaveFlag?.(true);
     resetController();
 
     try {
-      const result = await saveWidget(widget.guid, saveData, controllerRef.current.signal);
+      const localSaveData = { ...saveData };
+
+      if (prettierConfig?.formatOnSave) {
+        const scriptFields = ['script', 'client_script', 'template', 'css', 'link'] as const;
+
+        for (const fieldName of scriptFields) {
+          const scriptRef = getScriptRef(fieldName).current;
+          await scriptRef?.format?.();
+          //Await returned value from codemirror debounce
+          await new Promise(resolve => setTimeout(resolve, 150));
+          localSaveData[fieldName] = scriptRef?.getRawValue() || '';
+        }
+      }
+
+      const result = await saveWidget(widget.guid, localSaveData, controllerRef.current.signal);
+
       if (result) {
         toast.success('Widget saved');
-        applySavedChanges(saveData);
+        applySavedChanges(localSaveData);
       } else {
         setSaveFlag?.(false);
       }
     } catch (e) {
       setSaveFlag?.(false);
       errorHandler(e, 'Failed to save widget');
+    } finally {
+      setSaving(false);
     }
-  }, [applySavedChanges, setSaveFlag, saveData, widget.guid]);
+  }, [prettierConfig, widget.guid, saveData, setSaveFlag, applySavedChanges, getScriptRef]);
 
   useSaveShortcut({ enabled: canWrite, onTrigger: onSave });
 
@@ -71,7 +93,7 @@ export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => v
       <div>
         <WidgetPicker v={widget.guid} dv={widget.fields.name.display_value || ''} />
       </div>
-      {isFetching ? <LoadingSpinner /> : <ModifyPackage table="sp_widget" />}
+      <ModifyPackage table="sp_widget" />
       <div className="flex gap-2 items-center">
         {widget.toggleButtons
           .filter(b => !b.visible)
@@ -91,6 +113,7 @@ export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => v
         <WidgetDropdown widget={widget} />
       </div>
       <div className="ml-auto flex gap-2 items-center">
+        {isFetching && <LoadingSpinner />}
         {canDelete && (
           <Tooltip>
             <TooltipTrigger asChild>
@@ -116,8 +139,8 @@ export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => v
           }
         />
         {canWrite && (
-          <Button onClick={onSave}>
-            <Save />
+          <Button onClick={onSave} disabled={saving}>
+            {saving ? <LoadingSpinner className="text-primary-foreground" /> : <Save />}
             Save
           </Button>
         )}

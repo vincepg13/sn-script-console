@@ -25,7 +25,10 @@ export function ScriptHeader() {
   const { prettierConfig } = config;
 
   const onSave = useCallback(async () => {
-    if (prettierConfig?.formatOnSave) await editorRef.current?.format?.();
+    if (prettierConfig?.formatOnSave) {
+      await editorRef.current?.format?.();
+      await new Promise(resolve => setTimeout(resolve, 150));
+    }
     const value = editorRef.current!.getRawValue();
 
     try {
