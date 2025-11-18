@@ -6,15 +6,7 @@ import { DependencyCounts, WidgetRes } from '@/types/widget';
 import { useSharedRouteConfig } from '@/hooks/useSharedConfig';
 import { GeneralLoader } from '@/components/generic/GeneralLoader';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
-import React, {
-  createContext,
-  useContext,
-  useCallback,
-  useEffect,
-  useState,
-  RefObject,
-  useRef,
-} from 'react';
+import React, { createContext, useContext, useCallback, useEffect, useState, RefObject, useRef } from 'react';
 
 type SaveData = Record<string, string>;
 
@@ -83,7 +75,7 @@ export const WidgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [saveData, setSaveData] = useState<SaveData>({});
   const [stagedChanges, setStagedChanges] = useState(false);
 
-  useSharedRouteConfig(data, isFetching, qc);  
+  useSharedRouteConfig(data, isFetching, qc);
 
   // normalization for comparisons
   const normalizeForCompare = useCallback(
@@ -187,13 +179,15 @@ export const WidgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return { ...prev, fields: nextFields };
       });
 
-      setSaveData(prev => {
-        if (!prev) return prev;
-        const next = { ...prev };
-        for (const name of Object.keys(changes)) delete next[name];
-        setStagedChanges(Object.keys(next).length > 0);
-        return next;
-      });
+      setSaveData({});
+      setStagedChanges(false);
+      // setSaveData(prev => {
+      //   if (!prev) return prev;
+      //   const next = { ...prev };
+      //   for (const name of Object.keys(changes)) delete next[name];
+      //   setStagedChanges(Object.keys(next).length > 0);
+      //   return next;
+      // });
     },
     [qc, widgetId]
   );

@@ -21,6 +21,7 @@ import { useAppData } from '@/context/app-context';
 export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => void }) {
   const navigate = useNavigate();
   const [confirm, setConfirm] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const { widget, saveData, isFetching, applySavedChanges, getScriptRef, toggleFieldVisibility } = useWidget();
   const { canWrite, canDelete } = widget.security;
@@ -46,6 +47,7 @@ export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => v
   }, [navigate, widget.guid]);
 
   const onSave = useCallback(async () => {
+    setSaving(true);
     setSaveFlag?.(true);
     resetController();
 
@@ -58,6 +60,8 @@ export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => v
         for (const fieldName of scriptFields) {
           const scriptRef = getScriptRef(fieldName).current;
           await scriptRef?.format?.();
+          //Await returned value from codemirror debounce
+          await new Promise(resolve => setTimeout(resolve, 150));
           localSaveData[fieldName] = scriptRef?.getRawValue() || '';
         }
       }
@@ -70,10 +74,11 @@ export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => v
       } else {
         setSaveFlag?.(false);
       }
-      
     } catch (e) {
       setSaveFlag?.(false);
       errorHandler(e, 'Failed to save widget');
+    } finally {
+      setSaving(false);
     }
   }, [prettierConfig, widget.guid, saveData, setSaveFlag, applySavedChanges, getScriptRef]);
 
@@ -88,7 +93,7 @@ export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => v
       <div>
         <WidgetPicker v={widget.guid} dv={widget.fields.name.display_value || ''} />
       </div>
-      {isFetching ? <LoadingSpinner /> : <ModifyPackage table="sp_widget" />}
+      <ModifyPackage table="sp_widget" />
       <div className="flex gap-2 items-center">
         {widget.toggleButtons
           .filter(b => !b.visible)
@@ -108,6 +113,7 @@ export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => v
         <WidgetDropdown widget={widget} />
       </div>
       <div className="ml-auto flex gap-2 items-center">
+        {isFetching && <LoadingSpinner />}
         {canDelete && (
           <Tooltip>
             <TooltipTrigger asChild>
@@ -133,8 +139,8 @@ export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => v
           }
         />
         {canWrite && (
-          <Button onClick={onSave}>
-            <Save />
+          <Button onClick={onSave} disabled={saving}>
+            {saving ? <LoadingSpinner className="text-primary-foreground" /> : <Save />}
             Save
           </Button>
         )}
