@@ -138,6 +138,7 @@ export function WidgetEditor() {
                   parentClasses="flex-1 min-h-0 flex flex-col"
                   cmContainerClasses="flex-1 min-h-0 overflow-auto"
                   onReady={ref => setScriptRef(target.name, ref)}
+                  bounceTime={200}
                   // onBlur={(v: string) => setLocalFieldValue(target.name, v)}
                   onChange={(v: string) => setLocalFieldValue(target.name, v)}
                   customToolbar={

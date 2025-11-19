@@ -63,6 +63,7 @@ export function ScriptField() {
         parentClasses="block h-full min-h-0"
         cmContainerClasses="h-full min-h-0 overflow-auto"
         onChange={onEditorChange}
+        bounceTime={200}
         onReady={r => (editorRef.current = r)}
         customToolbar={null}
       />

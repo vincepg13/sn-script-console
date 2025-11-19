@@ -58,12 +58,16 @@ export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => v
         const scriptFields = ['script', 'client_script', 'template', 'css', 'link'] as const;
 
         for (const fieldName of scriptFields) {
-          const scriptRef = getScriptRef(fieldName).current;
-          await scriptRef?.format?.();
-          //Await returned value from codemirror debounce
-          await new Promise(resolve => setTimeout(resolve, 150));
-          localSaveData[fieldName] = scriptRef?.getRawValue() || '';
+          const visible = widget.toggleButtons.find(b => b.field === fieldName && b.visible);
+          if (visible) {
+            const scriptRef = getScriptRef(fieldName).current;
+            await scriptRef?.format?.();
+            localSaveData[fieldName] = scriptRef?.getRawValue() || '';
+          }
         }
+
+        //Give CM debounce time to finish formatting
+        await new Promise(resolve => setTimeout(resolve, 300));
       }
 
       const result = await saveWidget(widget.guid, localSaveData, controllerRef.current.signal);

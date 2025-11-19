@@ -711,6 +711,10 @@ declare global {
             id: '901708bb8c584767826ee1a1d9c52457';
             deleted: false;
           };
+          'x_659318_script/codemirror-_2kbQ-AR': {
+            table: 'sys_ux_lib_asset';
+            id: 'e2150dc8e7e54e6196a6a1148d29b0af';
+          };
           'x_659318_script/codemirror-BE7isTIz': {
             table: 'sys_ux_lib_asset';
             id: '1e60df39eac24ab3aaf0d3745ff3a8a4';
@@ -719,6 +723,7 @@ declare global {
           'x_659318_script/codemirror-BJNGyW3T': {
             table: 'sys_ux_lib_asset';
             id: '1a3cd2dc1e284155a016ef5829bf25af';
+            deleted: true;
           };
           'x_659318_script/codemirror-BMcGKAcw': {
             table: 'sys_ux_lib_asset';
@@ -793,6 +798,11 @@ declare global {
           'x_659318_script/tiptap-CkQhA0l7': {
             table: 'sys_ux_lib_asset';
             id: '29abb0e9e152408c8b61245afa512792';
+            deleted: true;
+          };
+          'x_659318_script/tiptap-DcxOgkK2': {
+            table: 'sys_ux_lib_asset';
+            id: '17258ecd20e348688fb45c4f5a99ee90';
           };
           'x_659318_script/tiptap-DWTDQtD_': {
             table: 'sys_ux_lib_asset';

@@ -101,7 +101,7 @@ export const ScriptProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const getCurrentValue = () => editorRef.current?.getValue?.() ?? '';
 
   const onEditorChange = useCallback(
-    (val: string) => {
+    (val: string, bounceTime?: number) => {
       if (!stagedChanges) setStagedChanges(true);
 
       // debounce the expensive compare
@@ -109,7 +109,7 @@ export const ScriptProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       timerRef.current = window.setTimeout(() => {
         const same = normalize(val) === serverNorm;
         setStagedChanges(!same);
-      }, 250);
+      }, bounceTime ?? 0);
     },
     [serverNorm, stagedChanges]
   );
