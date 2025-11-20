@@ -4,39 +4,36 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 type CheckDirty = () => boolean;
 
 export function useLazyUnsavedChanges(checkDirty: CheckDirty) {
-  // Control modal open state
   const [open, setOpen] = useState(false);
 
-  const blocker = useBlocker(true);
   const autoProceedingRef = useRef(false);
   const checkRef = useRef<CheckDirty>(() => false);
-
-  // keep latest predicate without re-subscribing effects
   useEffect(() => {
     checkRef.current = checkDirty;
   }, [checkDirty]);
 
-  // When a navigation is blocked, lazily compute dirtiness
+  // Only block when actually dirty, and never block during an auto-proceed retry
+  const shouldBlock = useCallback(() => {
+    if (autoProceedingRef.current) return false;
+    return !!checkRef.current();
+  }, []);
+
+  const blocker = useBlocker(shouldBlock);
+
   useEffect(() => {
     if (blocker.state !== 'blocked') return;
 
-    if (autoProceedingRef.current) {
-      autoProceedingRef.current = false;
-      return;
-    }
-
-    const dirty = !!checkRef.current();
-    if (!dirty) {
-      autoProceedingRef.current = true;
-      blocker.proceed?.();
-    } else {
-      setOpen(true);
-    }
-  }, [blocker.state, blocker]);
+    // If we're here, shouldBlock() returned true -> we are dirty
+    setOpen(true);
+  }, [blocker.state]);
 
   const confirm = useCallback(() => {
+    // Allow the retry to pass through the blocker
+    autoProceedingRef.current = true;
     setOpen(false);
     blocker.proceed?.();
+    // Clear the flag on next tick/frame so future navigations are blockable again
+    queueMicrotask(() => { autoProceedingRef.current = false; });
   }, [blocker]);
 
   const cancel = useCallback(() => {
@@ -44,9 +41,8 @@ export function useLazyUnsavedChanges(checkDirty: CheckDirty) {
     blocker.reset?.();
   }, [blocker]);
 
-  // Hard navigations (refresh/close).
   useBeforeUnload(
-    useCallback(e => {
+    useCallback((e) => {
       if (!checkRef.current()) return;
       e.preventDefault();
     }, [])

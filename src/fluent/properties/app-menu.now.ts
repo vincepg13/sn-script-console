@@ -32,8 +32,8 @@ Property({
       },
       {
         "title": "UI Policies",
-        "href": "/list/sys_ui_policy",
-        "description": "Modify field visibility and behaviour via actions or with scripts."
+        "href": "/list/sys_ui_policy?query=sys_class_name=sys_ui_policy",
+        "description": "Modify table fields visibility and behaviour via actions or with scripts."
       }
     ]
   },

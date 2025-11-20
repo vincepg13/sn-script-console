@@ -18,18 +18,18 @@ const normalize = (arr: PolicyAction[]) => {
     mandatory: a.mandatory.value,
     visible: a.visible.value,
     disabled: a.disabled.value,
-    cleared: a.cleared.value,
-    field: a.field.value,
+    cleared: a.cleared?.value,
+    field: a.field?.value,
   }));
 };
 
 const buildActionBody = (action: PolicyAction, table?: string, policyGuid?: string, policyScope?: string) => {
   const actionBody: PolicyActionItem = {
-    field: action.field.value,
     mandatory: action.mandatory.value,
     visible: action.visible.value,
     disabled: action.disabled.value,
-    cleared: action.cleared.value,
+    field: action.field?.value,
+    cleared: action.cleared?.value,
   };
 
   if (table) actionBody.table = table;
@@ -45,22 +45,27 @@ export function PolicyActions() {
 
   const [saving, setSaving] = useState(false);
   const [localActions, setLocalActions] = useState(actions);
-  const [fields, setFields] = useState<FieldsByTable>({ [policy.table]: policy.meta });
+  const [fields, setFields] = useState<FieldsByTable | undefined>(
+    policy.type === "sys_ui_policy" ? { [policy.table!]: policy.meta } : undefined
+  );
 
   const removeAction = (actionId: string) => {
     setLocalActions(prev => prev.filter(action => action.guid !== actionId));
   };
 
+  const actionClass = policy.type + '_action';
   const addAction = () => {
     setLocalActions(prev => [
       ...prev,
       {
+        actionClass,
+        canWrite: true,
         guid: 'new:' + crypto.randomUUID(),
-        field: { value: '', displayValue: 'Select Field' },
         mandatory: { value: 'ignore', displayValue: 'Leave Alone' },
         visible: { value: 'ignore', displayValue: 'Leave Alone' },
         disabled: { value: 'ignore', displayValue: 'Leave Alone' },
         cleared: { value: false, displayValue: 'False' },
+        field: policy.type === "sys_ui_policy" ? { value: '', displayValue: 'Select Field' } : undefined,
       },
     ]);
   };
@@ -139,15 +144,16 @@ export function PolicyActions() {
       <hr></hr>
       {localActions.length > 0 ? (
         <>
-          <PolicyRowHeader disabled={!inScope} />
+          <PolicyRowHeader policyType={policy.type} disabled={!inScope} />
           {localActions.map(action => (
             <PolicyRow
               key={action.guid}
+              type={policy.type}
               table={policy.table}
               action={action}
               fields={fields}
-              disabled={!inScope}
-              setFields={setFields}
+              disabled={!action.canWrite}
+              setFields={fields ? setFields : undefined}
               onChange={patchAction}
               onRemove={removeAction}
             />

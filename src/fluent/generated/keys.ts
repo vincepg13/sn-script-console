@@ -5,6 +5,11 @@ declare global {
     namespace Internal {
       interface Keys extends KeysRegistry {
         explicit: {
+          '007882ca8311321025451429feaad35b': {
+            table: 'sys_scope_privilege';
+            id: '007882ca8311321025451429feaad35b';
+            deleted: true;
+          };
           '03b5831eb48147c9bf79ab14d72590a2': {
             table: 'sys_ws_operation';
             id: '03b5831eb48147c9bf79ab14d72590a2';
@@ -562,6 +567,11 @@ declare global {
             id: 'e7552868921343b4d9e75e5a80f6ec7f';
             deleted: true;
           };
+          efd91a4e8391321025451429feaad399: {
+            table: 'sys_scope_privilege';
+            id: 'efd91a4e8391321025451429feaad399';
+            deleted: true;
+          };
           f1b8e3a593564eadbdd48b4ae53e510d: {
             table: 'sys_ws_operation';
             id: 'f1b8e3a593564eadbdd48b4ae53e510d';
@@ -714,6 +724,7 @@ declare global {
           'x_659318_script/codemirror-_2kbQ-AR': {
             table: 'sys_ux_lib_asset';
             id: 'e2150dc8e7e54e6196a6a1148d29b0af';
+            deleted: true;
           };
           'x_659318_script/codemirror-BE7isTIz': {
             table: 'sys_ux_lib_asset';
@@ -723,7 +734,7 @@ declare global {
           'x_659318_script/codemirror-BJNGyW3T': {
             table: 'sys_ux_lib_asset';
             id: '1a3cd2dc1e284155a016ef5829bf25af';
-            deleted: true;
+            deleted: false;
           };
           'x_659318_script/codemirror-BMcGKAcw': {
             table: 'sys_ux_lib_asset';
@@ -798,11 +809,12 @@ declare global {
           'x_659318_script/tiptap-CkQhA0l7': {
             table: 'sys_ux_lib_asset';
             id: '29abb0e9e152408c8b61245afa512792';
-            deleted: true;
+            deleted: false;
           };
           'x_659318_script/tiptap-DcxOgkK2': {
             table: 'sys_ux_lib_asset';
             id: '17258ecd20e348688fb45c4f5a99ee90';
+            deleted: true;
           };
           'x_659318_script/tiptap-DWTDQtD_': {
             table: 'sys_ux_lib_asset';

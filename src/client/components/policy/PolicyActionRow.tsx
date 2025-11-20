@@ -2,21 +2,21 @@ import { Switch } from '../ui/switch';
 import { Button } from '../ui/button';
 import { useState, startTransition } from 'react';
 import { SnDotwalkChoice } from 'sn-shadcn-kit/table';
-import { ActionField, FieldsByTable, PolicyAction } from '@/types/policy';
+import { ActionField, FieldsByTable, PolicyAction, PolicyType } from '@/types/policy';
 import { Asterisk, Eye, Lock, SquarePen, Trash } from 'lucide-react';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
 
-export function PolicyRowHeader({ disabled }: { disabled?: boolean }) {
+export function PolicyRowHeader({ policyType, disabled }: { policyType: PolicyType; disabled?: boolean }) {
   const iconClass = 'text-muted-foreground size-5';
   const labelParent = 'pl-1 flex gap-1 items-center flex-1';
   const labelClass = `text-sm font-medium ${disabled ? 'text-muted-foreground' : ''}`;
 
   return (
     <div className="flex gap-2 mb-[-10px]">
-      <div className={labelParent}>
+      {policyType === 'sys_ui_policy' && <div className={labelParent}>
         <SquarePen className={`${iconClass}`} />
         <div className={labelClass}>Field</div>
-      </div>
+      </div>}
       <div className={labelParent}>
         <Asterisk className={iconClass} />
         <div className={labelClass}>Mandatory</div>
@@ -29,15 +29,16 @@ export function PolicyRowHeader({ disabled }: { disabled?: boolean }) {
         <Lock className={iconClass} />
         <div className={labelClass}>Read only</div>
       </div>
-      <div className="min-w-[80px] flex flex-col">
+      {policyType === 'sys_ui_policy' && <div className="min-w-[80px] flex flex-col">
         <div className={labelClass}>Clear Value</div>
-      </div>
+      </div>}
       {!disabled && <div className="min-w-[50px]"></div>}
     </div>
   );
 }
 
 export function PolicyRow({
+  type,
   fields,
   table,
   action,
@@ -46,11 +47,12 @@ export function PolicyRow({
   onRemove,
   setFields,
 }: {
-  table: string;
+  table?: string;
+  type: PolicyType;
   action: PolicyAction;
-  fields: FieldsByTable;
+  fields?: FieldsByTable;
   disabled?: boolean;
-  setFields: React.Dispatch<React.SetStateAction<FieldsByTable>>;
+  setFields?: React.Dispatch<React.SetStateAction<FieldsByTable | undefined>>;
   onRemove: (id: string) => void;
   onChange: (action: string, field: ActionField, value: string | boolean, displayValue?: string) => void;
 }) {
@@ -62,17 +64,21 @@ export function PolicyRow({
     onChange(action.guid, field, value);
   };
 
+  const isSysPolicy = type === 'sys_ui_policy';
+
   return (
     <div className="flex gap-2 items-center">
-      <SnDotwalkChoice
-        className="w-full flex-1"
-        label={action.field.displayValue}
-        baseTable={table}
-        disabled={disabled}
-        fieldsByTable={fields}
-        setFieldsByTable={setFields}
-        onChange={onChangeWalkedField}
-      />
+      {isSysPolicy && action.field && (
+        <SnDotwalkChoice
+          className="w-full flex-1"
+          label={action.field.displayValue}
+          baseTable={table!}
+          disabled={disabled}
+          fieldsByTable={fields!}
+          onChange={onChangeWalkedField}
+          setFieldsByTable={setFields as React.Dispatch<React.SetStateAction<FieldsByTable>>}
+        />
+      )}
       <PolicyFieldAction
         field="mandatory"
         value={action.mandatory.value}
@@ -91,7 +97,7 @@ export function PolicyRow({
         onChange={onChangeActionField}
         disabled={disabled}
       />
-      <div className="min-w-[80px] flex flex-col">
+      {isSysPolicy && action.cleared && <div className="min-w-[80px] flex flex-col">
         <div className="w-full flex justify-center">
           <Switch
             disabled={disabled}
@@ -99,7 +105,7 @@ export function PolicyRow({
             onCheckedChange={val => onChange(action.guid, 'cleared', val, String(val))}
           />
         </div>
-      </div>
+      </div>}
       {!disabled && (
         <div className="min-w-[50px] flex justify-center">
           <Button variant="trash" size="icon" onClick={() => onRemove(action.guid)}>

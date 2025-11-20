@@ -10,6 +10,9 @@
     return response.setError(new sn_ws_err.NotFoundError('UI Policy could not be found.'));
   }
 
+  const scopeChange = sgu.autoScopeSwitch(grPolicy);
+  const autoPack = util.autoPack('sys_ui_policy', `/policy/${guid}`);
+
   const grAction = sgu.getGlobalGr('sys_ui_policy_action');
   grAction.addQuery('ui_policy', guid);
   grAction.orderByDesc('sys_updated_on');
@@ -18,33 +21,41 @@
   const actions = [];
   const getValuePair = (gr, fieldName) => ({
     value: sgu.grMethod(gr, 'getValue', [fieldName]),
-    displayValue: sgu.grMethod(gr, 'getDisplayValue', [fieldName]),
+    displayValue: sgu.grMethod(gr, 'getDisplayValue', [fieldName])
   });
 
   while (grAction.next()) {
-    actions.push({
+    const actionClass = sgu.grMethod(grAction, 'getValue', ['sys_class_name']);
+
+    const action = {
+      actionClass,
       guid: grAction.getUniqueValue(),
-      field: getValuePair(grAction, 'field'),
       mandatory: getValuePair(grAction, 'mandatory'),
       visible: getValuePair(grAction, 'visible'),
       disabled: getValuePair(grAction, 'disabled'),
-      cleared: getValuePair(grAction, 'cleared'),
-    });
+      canWrite: sgu.grMethod(grAction, 'canWrite')
+    };
+
+    if (actionClass == 'sys_ui_policy_action') {
+      action.cleared = getValuePair(grAction, 'cleared');
+      action.field = getValuePair(grAction, 'field');
+    }
+
+    actions.push(action);
   }
 
   const policy = {
     guid,
     actions: actions,
+    canWrite: sgu.grMethod(grPolicy, 'canWrite'),
     table: sgu.grMethod(grPolicy, 'getValue', ['table']),
     scope: sgu.grMethod(grPolicy, 'getValue', ['sys_scope']),
-    name: sgu.grMethod(grPolicy, 'getDisplayValue', ['short_description']),
+    type: sgu.grMethod(grPolicy, 'getValue', ['sys_class_name']),
+    name: sgu.grMethod(grPolicy, 'getDisplayValue', ['short_description'])
   };
 
-  const scopeChange = sgu.autoScopeSwitch(grPolicy);
-  if (scopeChange) policy.scopeChange = scopeChange;
-
-  const autoPack = util.autoPack('sys_ui_policy', `/policy/${guid}`);
   if (autoPack) policy.packageValue = autoPack;
+  if (scopeChange) policy.scopeChange = scopeChange;
 
   response.setStatus(200);
   response.setBody(policy);

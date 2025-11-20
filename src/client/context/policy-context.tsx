@@ -1,16 +1,17 @@
 import { isAxiosError } from 'axios';
 import { useParams } from 'react-router';
 import { getPolicyData } from '@/lib/api';
-import { useAppData } from './app-context';
-import { PolicyAction } from '@/types/policy';
+import { AlertCircleIcon } from 'lucide-react';
 import { SnConditionMap } from 'sn-shadcn-kit/table';
-import { createContext, useCallback, useContext, useMemo, useRef } from 'react';
+import { PolicyAction, PolicyType } from '@/types/policy';
 import { useSharedRouteConfig } from '@/hooks/useSharedConfig';
 import { GeneralLoader } from '@/components/generic/GeneralLoader';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { createContext, useCallback, useContext, useMemo, useRef } from 'react';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface PolicyContextValue {
-  policy: { name: string; guid: string; table: string; scope: string; meta: SnConditionMap };
+  policy: { name: string; guid: string; table?: string; scope: string; meta: SnConditionMap; type: PolicyType };
   actions: PolicyAction[];
   isFetching: boolean;
   isLoading: boolean;
@@ -53,8 +54,8 @@ export const PolicyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const { data, isLoading, error, isFetching, refetch } = useQuery(policyDataQuery(id!));
   useSharedRouteConfig(data, isFetching, qc);
 
-  const { config } = useAppData();
-  const inScope = useMemo(() => data?.scope === config.scope.value, [data?.scope, config.scope.value]);
+  const inScope = useMemo(() => !!data?.canWrite, [data?.canWrite]);
+  // const inScope = useMemo(() => data?.scope === config.scope.value, [data?.scope, config.scope.value]);
 
   const patchActions = useCallback(
     (valueOrUpdater: PolicyAction[] | ((prev: PolicyAction[]) => PolicyAction[])) => {
@@ -79,9 +80,10 @@ export const PolicyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       policy: {
         name: data.name,
         guid: data.guid,
-        table: data.table,
         scope: data.scope,
         meta: data.tableMeta,
+        table: data.table || undefined,
+        type: data.type,
       },
       inScope,
       isFetching,
@@ -103,6 +105,18 @@ export const PolicyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }
 
   if (!id || !data) return null;
+
+  if (data.type !== 'sys_ui_policy') {
+    return (
+      <Alert variant="destructive">
+        <AlertCircleIcon className="mt-[3px]" />
+        <AlertTitle className="text-xl font-semibold">Unable to render this UI policy.</AlertTitle>
+        <AlertDescription>
+          <p className="text-base text-foreground">Only UI Policies for tables are supported at this time. Support for catalog and wizard policies will be added in a future update.</p>
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return <PolicyContext.Provider value={value}>{children}</PolicyContext.Provider>;
 };
