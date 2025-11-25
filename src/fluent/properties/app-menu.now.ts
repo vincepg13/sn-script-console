@@ -10,8 +10,9 @@ Property({
   },
   ignoreCache: true,
   isPrivate: false,
-  value: `[{
-    "label": "Client Scripts",
+  value: `[
+  {
+    "label": "Client Script",
     "icon": "Braces",
     "type": "single",
     "items": [
@@ -38,7 +39,7 @@ Property({
     ]
   },
   {
-    "label": "Server Scripts",
+    "label": "Server Script",
     "icon": "Server",
     "type": "multi",
     "items": [
@@ -83,6 +84,11 @@ Property({
         "href": "INSTANCE_URI/now/workflow-studio/home/flow",
         "target": "_blank",
         "description": "Go to flow designer to create and manage automated workflows."
+      },
+      {
+        "title": "System Properties",
+        "href": "/list/sys_properties",
+        "description": "Update system properties via their form or make use of script consoles value editor."
       }
     ]
   },
@@ -91,7 +97,7 @@ Property({
     "icon": "Code2",
     "type": "multi",
     "items": [
-    {
+      {
         "title": "CSS",
         "href": "/list/sp_css",
         "description": "Add custom CSS to your service portal to change the look and feel of your site."
@@ -107,5 +113,6 @@ Property({
         "description": "Enhanced editor for Service Portal widgets with additional features."
       }
     ]
-  }]`,
+  }
+]`,
 });

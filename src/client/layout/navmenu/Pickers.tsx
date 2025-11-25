@@ -44,6 +44,7 @@ export function Pickers() {
       qc.invalidateQueries({ queryKey: ['listData'] });
       qc.invalidateQueries({ queryKey: ['scriptData'] });
       qc.invalidateQueries({ queryKey: ['policyData'] });
+      qc.invalidateQueries({ queryKey: ['propertyData'] });
     } catch (error) {
       return errorHandler(error, 'Failed to change application');
     }

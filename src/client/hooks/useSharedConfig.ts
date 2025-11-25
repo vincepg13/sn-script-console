@@ -1,3 +1,4 @@
+import { PropertyData } from '@/types/property';
 import { WidgetRes } from '@/types/widget';
 import { ScriptData } from '@/types/script';
 import { PolicyData } from '@/types/policy';
@@ -5,7 +6,7 @@ import { useEffect, useEffectEvent } from 'react';
 import { useAppData } from '@/context/app-context';
 import { QueryClient } from '@tanstack/query-core';
 
-type AllowedData = WidgetRes | ScriptData | PolicyData | undefined | null;
+type AllowedData = WidgetRes | ScriptData | PolicyData | PropertyData | undefined | null;
 
 export function useSharedRouteConfig(data: AllowedData, isFetching: boolean, qc: QueryClient) {
   const { config, setConfig, setPackageData } = useAppData();

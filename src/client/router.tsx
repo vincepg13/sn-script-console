@@ -10,6 +10,7 @@ import WidgetEditorPage from "./routes/WidgetEditorPage";
 import NotFoundError from "./routes/errors/NotFoundError";
 import WidgetEditorIndex from "./routes/WidgetEditorIndex";
 import InvalidRecordError from "./routes/errors/InvalidError";
+import { PropertyPage } from "./routes/PropertyPage";
 
 export function makeRouter() {
   return createHashRouter([
@@ -25,6 +26,7 @@ export function makeRouter() {
         { path: "form/:table/:sys_id", element: <FormPage /> },
         { path: "script/:table/:id", element: <ScriptPage /> },
         { path: "policy/:id", element: <PolicyPage /> },
+        { path: "property/:id", element: <PropertyPage /> },
         { path: "invalid", element: <InvalidRecordError /> },
         { path: "*", element: <NotFoundError /> },
       ],

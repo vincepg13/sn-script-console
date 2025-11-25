@@ -14,6 +14,11 @@ import {
   Updater,
 } from 'sn-shadcn-kit/table';
 
+const tableRouteMap: Record<string, string> = {
+  sys_ui_policy: 'policy',
+  sys_properties: 'property',
+}
+
 const getGenericColumn = (id: string, label: string, classes?: string): ColumnDef<SnRow, SnRowItem> => ({
   id,
   accessorKey: id,
@@ -60,10 +65,10 @@ export function ViewTable() {
   //Open the record tab when a row is clicked
   const openRecord = (row: Row<SnRow>) => {
     const guid = row.original.sys_id?.value;
-    const isPolicy = table === 'sys_ui_policy';
 
     if (guid) {
-      navigate(isPolicy ? `/policy/${guid}` : `/script/${table}/${guid}`);
+      const route = tableRouteMap[table] || `script/${table}`;
+      navigate(`/${route}/${guid}`);
     }
   };
 
