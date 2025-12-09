@@ -4,6 +4,7 @@ import { PackageMenu } from './PackageMenu';
 import { PackageManager } from './PackageManager';
 import { useAppConfig } from '@/context/app-context';
 import { Separator } from '@/components/ui/separator';
+import { useQueryClient } from '@tanstack/react-query';
 import { ChevronsLeftRightEllipsis } from 'lucide-react';
 import {
   Sidebar,
@@ -14,7 +15,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { useQueryClient } from '@tanstack/react-query';
+
+export const sidebarSizes = {
+  default: '16rem',
+  wide: '20rem',
+  extra_wide: '24rem',
+};
 
 export function AppSidebar() {
   const qc = useQueryClient();

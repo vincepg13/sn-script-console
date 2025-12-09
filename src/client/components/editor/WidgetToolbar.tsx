@@ -84,7 +84,7 @@ export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => v
     } finally {
       setSaving(false);
     }
-  }, [prettierConfig, widget.guid, saveData, setSaveFlag, applySavedChanges, getScriptRef]);
+  }, [setSaveFlag, saveData, prettierConfig?.formatOnSave, widget.guid, widget.toggleButtons, getScriptRef, applySavedChanges]);
 
   useSaveShortcut({ enabled: canWrite, onTrigger: onSave });
 
@@ -93,7 +93,7 @@ export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => v
   }, []);
 
   return (
-    <div className="flex flex-wrap gap-2 items-center pt-1">
+    <div className="flex flex-wrap gap-2 items-center">
       <div>
         <WidgetPicker v={widget.guid} dv={widget.fields.name.display_value || ''} />
       </div>

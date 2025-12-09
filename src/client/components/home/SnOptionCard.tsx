@@ -7,10 +7,18 @@ import { useAppData } from '@/context/app-context';
 import { CmThemeValue } from 'sn-shadcn-kit/script';
 import { useDebouncedFn } from '@/hooks/useDebounceFn';
 import { useEffect, useState, startTransition, useRef } from 'react';
-// import { useAbortableController } from '@/hooks/useAbortableController';
-import { autoPackageAddKey, autoScopeSwitchKey, cmThemeKey, directToWidgetKey, themeOptions } from '@/lib/config';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  autoPackageAddKey,
+  autoScopeSwitchKey,
+  cmThemeKey,
+  directToWidgetKey,
+  sidebarWidthKey,
+  sidebarWidthOptions,
+  themeOptions,
+} from '@/lib/config';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
+import { SidebarWidth } from '@/types/app';
 
 export function SnOptionsCard({ resync }: { resync: () => void }) {
   // const { getSignal } = useAbortableController();
@@ -21,6 +29,7 @@ export function SnOptionsCard({ resync }: { resync: () => void }) {
   const [scopeSwitch, setScopeSwitch] = useState<boolean>(!!config.preferences?.autoScopeSwitch);
   const [packageAdd, setPackageAdd] = useState<boolean>(!!config.preferences?.autoPackageAdd);
   const [lastWidget, setLastWidget] = useState<boolean>(!!config.preferences?.directToWidget);
+  const [sidebarSize, setSidebarSize] = useState<SidebarWidth>(config.preferences?.sidebarWidth || 'default');
 
   useEffect(() => {
     if (saving.current) return;
@@ -72,6 +81,12 @@ export function SnOptionsCard({ resync }: { resync: () => void }) {
     savePref(cmThemeKey, value);
   };
 
+  const setSidebarSizePref = (value: SidebarWidth) => {
+    setSidebarSize(value);
+    startTransition(() => setLocalPreference('sidebarWidth', value));
+    savePref(sidebarWidthKey, value);
+  };
+
   const setScopeSwitchPref = (checked: boolean) => {
     const prev = scopeSwitch;
     setScopeSwitch(checked);
@@ -111,23 +126,44 @@ export function SnOptionsCard({ resync }: { resync: () => void }) {
       <CardContent>
         <form id="general-form" className="w-full">
           <div className="flex flex-col gap-6">
-            <div className="grid gap-2">
-              <Label htmlFor="script-theme">Script Theme</Label>
-              <Select value={theme} onValueChange={setThemePref}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select an option" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Theme options</SelectLabel>
-                    {themeOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="grid gap-2">
+                <Label htmlFor="script-theme">Script Theme</Label>
+                <Select value={theme} onValueChange={setThemePref}>
+                  <SelectTrigger className="w-full truncate">
+                    <SelectValue placeholder="Select an option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Theme options</SelectLabel>
+                      {themeOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="script-theme">Sidebar Width</Label>
+                <Select value={sidebarSize} onValueChange={setSidebarSizePref}>
+                  <SelectTrigger className="w-full truncate">
+                    <SelectValue placeholder="Select an option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Width options</SelectLabel>
+                      {sidebarWidthOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="grid gap-2">
