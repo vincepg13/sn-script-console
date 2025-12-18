@@ -10,8 +10,9 @@ Property({
   },
   ignoreCache: true,
   isPrivate: false,
-  value: `[{
-    "label": "Client Scripts",
+  value: `[
+  {
+    "label": "Client Script",
     "icon": "Braces",
     "type": "single",
     "items": [
@@ -38,7 +39,7 @@ Property({
     ]
   },
   {
-    "label": "Server Scripts",
+    "label": "Server Script",
     "icon": "Server",
     "type": "multi",
     "items": [
@@ -73,6 +74,16 @@ Property({
         "description": "Define your own scripted REST endpoints to handle incoming requests."
       },
       {
+        "title": "System Properties",
+        "href": "/list/sys_properties",
+        "description": "Update system properties via their form or make use of script consoles value editor."
+      },
+      {
+        "title": "Fix Scripts",
+        "href": "/list/sys_script_fix",
+        "description": "Scripted logic that runs after an application is installed or upgraded."
+      },
+      {
         "title": "Workflow Editor (Legacy)",
         "href": "INSTANCE_URI/workflow_ide.do?sysparm_nostack=true&sysparm_use_polaris=false",
         "target": "_blank",
@@ -91,7 +102,7 @@ Property({
     "icon": "Code2",
     "type": "multi",
     "items": [
-    {
+      {
         "title": "CSS",
         "href": "/list/sp_css",
         "description": "Add custom CSS to your service portal to change the look and feel of your site."
@@ -107,5 +118,6 @@ Property({
         "description": "Enhanced editor for Service Portal widgets with additional features."
       }
     ]
-  }]`,
+  }
+]`,
 });

@@ -1,10 +1,10 @@
-import { PolicyProvider, usePolicy } from '@/context/policy-context';
-import { PolicyHeader } from '@/components/policy/PolicyHeader';
-import { PolicyActions } from '@/components/policy/PolicyActions';
-import { MountedTabs, TabsContent } from '@/components/ui/mounted-tabs';
 import { useState } from 'react';
 import PolicyForm from '@/components/policy/PolicyForm';
+import { PolicyHeader } from '@/components/policy/PolicyHeader';
+import { PolicyActions } from '@/components/policy/PolicyActions';
+import { PolicyProvider, usePolicy } from '@/context/policy-context';
 import { useLazyUnsavedChanges } from '@/hooks/useLazyUnsavedChanges';
+import { MountedTabs, TabsContent } from '@/components/ui/mounted-tabs';
 import { UnsavedChangesModal } from '@/components/generic/UnsavedChangesModal';
 
 export function PolicyPage() {

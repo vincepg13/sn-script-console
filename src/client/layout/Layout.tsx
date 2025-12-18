@@ -2,17 +2,17 @@
 import { NavMenu } from './navmenu/NavMenu';
 import { Pickers } from './navmenu/Pickers';
 import { Toaster } from '@/components/ui/sonner';
-import { ThemeSwitch } from '@/layout/navmenu/ThemeSwitch';
-import { WidthSwitch } from '@/layout/navmenu/WidthSwitch';
+import { AppSidebar, sidebarSizes } from './sidebar/Sidebar';
 import { useTheme } from '@/context/theme-context';
 import { Outlet, useLocation } from 'react-router';
 import { Separator } from '@/components/ui/separator';
-import { AppSidebar } from './sidebar/Sidebar';
+import { ThemeSwitch } from '@/layout/navmenu/ThemeSwitch';
+import { WidthSwitch } from '@/layout/navmenu/WidthSwitch';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useAppConfig } from '@/context/app-context';
 import { setPreference } from '@/lib/api';
 import { sidebarPrefKey } from '@/lib/config';
-import { useState, useEffect, useEffectEvent, startTransition } from 'react';
+import { useState, useEffect, useEffectEvent, startTransition, useMemo } from 'react';
 import { SimpleTooltip } from '@/components/generic/SimpleTooltip';
 
 export default function Layout() {
@@ -24,10 +24,9 @@ export default function Layout() {
 
   const location = useLocation();
   const pageName = location.pathname.split('/')[1] || '/';
+  const isWidgetEditor = pageName === 'widget_editor' && location.pathname.split('/').length === 3;
 
-  const forceFluid =
-    pageName === 'script' || (pageName === 'widget_editor' && location.pathname.split('/').length === 3);
-
+  const forceFluid = pageName === 'script' || isWidgetEditor;
   const widthClasses = width === 'fluid' || forceFluid ? 'w-full' : 'max-w-7xl w-full mx-auto';
 
   const setOpenFromPreference = useEffectEvent((pref: boolean) => {
@@ -45,8 +44,15 @@ export default function Layout() {
   });
   useEffect(() => persistPreference(open), [open]);
 
+  const sidebarStyle = useMemo(() => {
+    return {
+      '--sidebar-width': sidebarSizes[config.preferences.sidebarWidth] || '16rem',
+      '--sidebar-width-mobile': '18rem',
+    } as React.CSSProperties;
+  }, [config.preferences.sidebarWidth]);
+
   return (
-    <SidebarProvider defaultOpen={true} open={open} onOpenChange={setOpen}>
+    <SidebarProvider defaultOpen={true} open={open} onOpenChange={setOpen} style={sidebarStyle}>
       <AppSidebar />
 
       <div className="h-screen w-full bg-background text-foreground overflow-x-auto">
@@ -93,7 +99,9 @@ export default function Layout() {
           <div className="min-h-0 overflow-hidden">
             <div className="grid h-full min-h-0">
               {/* Content pane: this is the default scroller for most pages */}
-              <section className={`min-h-0 overflow-auto pt-4 ${forceFluid ? '' : 'px-4'}`}>
+              <section
+                className={`min-h-0 overflow-auto ${isWidgetEditor ? 'pt-2.5' : 'pt-4'} ${forceFluid ? '' : 'px-4'}`}
+              >
                 <div className={`${widthClasses} h-full min-h-0 flex flex-col`}>
                   <Outlet />
                 </div>

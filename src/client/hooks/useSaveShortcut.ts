@@ -1,7 +1,7 @@
 import { useEffect, useRef, RefObject } from 'react';
 
 type SaveTrigger =
-  | { buttonRef: RefObject<HTMLElement>; onTrigger?: never }
+  | { buttonRef: RefObject<HTMLButtonElement | null>; onTrigger?: never }
   | { buttonRef?: never; onTrigger: () => void };
 
 export type UseSaveShortcutOptions = SaveTrigger & {

@@ -1,30 +1,31 @@
-import { usePolicy } from '@/context/policy-context';
+import { useProperty } from '@/context/property-context';
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ModifyPackage } from '../generic/ModifyPackage';
 import { OpenInInstance } from '../generic/OpenInInstance';
 import { Spinner } from '../ui/spinner';
 
-export function PolicyHeader() {
-  const { policy, isFetching } = usePolicy();
+export function PropertyHeader() {
+  const table = 'sys_properties';
+  const { property, isFetching } = useProperty();
 
   return (
     <div className="grid grid-cols-[1fr_2fr_1fr] items-center w-full gap-1">
       <div className="flex gap-2 items-center">
-        <ModifyPackage table="sys_ui_policy" />
+        <ModifyPackage table={table} />
         {isFetching && <Spinner type="loader" className="size-5" />}
       </div>
       <div className="flex justify-center">
         <TabsList className="h-9 overflow-hidden w-full max-w-lg">
-          <TabsTrigger value="policy" className="px-3">
-            UI Policy
+          <TabsTrigger value="form" className="px-3">
+            System Property
           </TabsTrigger>
-          <TabsTrigger value="actions" className="px-3">
-            UI Policy Actions
+          <TabsTrigger value="value" className="px-3">
+            JSON Editor
           </TabsTrigger>
         </TabsList>
       </div>
       <div className="flex justify-end">
-        <OpenInInstance table="sys_ui_policy" guid={policy.guid} />
+        <OpenInInstance table={table} guid={property.guid} />
       </div>
     </div>
   );

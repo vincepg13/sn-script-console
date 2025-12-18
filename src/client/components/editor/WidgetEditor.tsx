@@ -11,6 +11,7 @@ import { ExternalChangesDialog } from '../generic/ExternalChangesDialog';
 import { Braces, CircleX, CodeSquare, SquareChartGantt } from 'lucide-react';
 import { setEsVersion, SnScriptEditor, SnScriptToolbar } from 'sn-shadcn-kit/script';
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
+import { angularJsTern } from '@/lib/angular-tern';
 
 type SnScriptFieldType = 'script' | 'script_plain' | 'html_template' | 'css';
 type WidgetFieldVals = {
@@ -37,6 +38,16 @@ const getScriptVals = (fields: WidgetFields): WidgetFieldVals => ({
   css: fields.css.value || '',
   link: fields.link.value || '',
 });
+
+const angularTernConfig = {
+  injectorToDefKey: {
+    $scope: 'Scope',
+    $rootScope: 'Scope',
+    $http: '$http',
+    $timeout: '$timeout',
+    $q: '$q',
+  },
+}
 
 export function WidgetEditor() {
   const qc = useQueryClient();
@@ -105,7 +116,7 @@ export function WidgetEditor() {
   const { onKeyDown } = useSlashPrevention();
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 gap-4" ref={cmContainer} onKeyDown={onKeyDown}>
+    <div className="flex flex-col flex-1 min-h-0 gap-2.5" ref={cmContainer} onKeyDown={onKeyDown}>
       <div className="px-4">
         <WidgetToolbar
           setSaveFlag={() => {
@@ -118,6 +129,9 @@ export function WidgetEditor() {
           .filter(e => e.visible)
           .map((e, i, arr) => {
             const target = widget.fields[e.field];
+            const extraTernDefs = ['client_script', 'link'].includes(e.field) ? [angularJsTern] : undefined;
+            const extraTernConfig = ['client_script', 'link'].includes(e.field) ? angularTernConfig : undefined;
+
             return (
               <div
                 className={`flex min-h-0 min-w-[450px] flex-1 flex-col overflow-hidden border border-s-0 ${i === arr.length - 1 ? 'border-e-0' : ''}`}
@@ -127,7 +141,7 @@ export function WidgetEditor() {
                   key={target.name}
                   height="100%"
                   snType={target.type as SnScriptFieldType}
-                  table="sp-widget"
+                  table="sp_widget"
                   lineWrapping={false}
                   readonly={locked || !target.canWrite}
                   fieldName={target.name}
@@ -135,14 +149,16 @@ export function WidgetEditor() {
                   esLintConfig={lintingSettings}
                   theme={preferences?.theme || 'atom'}
                   prettierOptions={prettierConfig ?? undefined}
-                  parentClasses="flex-1 min-h-0 flex flex-col"
+                  extraTernDefs={extraTernDefs}
+                  ternConfig={extraTernConfig}
+                  parentClasses="flex-1 min-h-0 flex flex-col gap-1.5"
                   cmContainerClasses="flex-1 min-h-0 overflow-auto"
                   onReady={ref => setScriptRef(target.name, ref)}
                   bounceTime={200}
                   // onBlur={(v: string) => setLocalFieldValue(target.name, v)}
                   onChange={(v: string) => setLocalFieldValue(target.name, v)}
                   customToolbar={
-                    <div className="flex justify-between items-center px-4 pt-2">
+                    <div className="flex justify-between items-center px-4 pt-1.5">
                       <div className="flex items-center gap-2">
                         {editorIconMap[target.name as keyof typeof editorIconMap]}
                         <p className="text-lg font-semibold">{target.label}</p>

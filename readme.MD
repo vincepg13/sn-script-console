@@ -28,7 +28,7 @@ You can install Script Console in two ways:
 
 If you're planning to use the application as-is, this is the simplest and recommended approach.
 
-1. Download the latest [update set](/public/Script%20Console%20V1.1.4.xml) from the public folder of this repository or from [ServiceNow Share](https://developer.servicenow.com/connect.do#!/share/contents/1722570_script_console?t=PRODUCT_DETAILS).
+1. Download the latest [update set](/public/Script%20Console%20V1.2.0.xml) from the public folder of this repository or from [ServiceNow Share](https://developer.servicenow.com/connect.do#!/share/contents/1722570_script_console?t=PRODUCT_DETAILS).
 2. Import and commit it to your ServiceNow instance via the **Update Sets** module.
 
 That’s it! The update set installs one file in the global scope - a script include named `ScriptConsoleG` - and the scoped application **Script Console**.
@@ -113,7 +113,7 @@ The content pane houses the router outlet and displays the active route’s cont
 
 ## 🧠 Routes
 
-Script Console operates with six main routes: **home**, **list**, **script**, **widget_editor**, **policy** and **form**.
+Script Console operates with seven main routes: **home**, **list**, **script**, **widget_editor**, **policy**, **properties**, and **form**.
 
 ### `Homepage`
 
@@ -210,6 +210,19 @@ A policy can be added/removed from your current package by using the package man
 
 ![Policy Actions Dark](/public/screenshots/policy_dark.png)  
 _Figure 8: Script Console Policy Action Builder, dark mode_
+
+---
+
+### `/property`
+
+The **property** route allows you to modify a system property. A common technique I use when creating applications is to store all constant values I work with, such as sys_ids, as an enum object in a system property. This allows me to keep a set of constants in one place instead of having to refer to various different system properties, or even worse, hard coding values.
+
+Storing JSON in a system property is a common technique among ServiceNow developers. But the main pitfall of this approach is you can easily enter invalid JSON into a plain text field, causing your code to not be able to parse it properly.
+
+That is why I created this property route, it allows you to modify the value field as a pure JSON object in CodeMirror and will alert you to any issues before you save the value. It will display the system property in its normal form, but also have a `JSON Value` tab. As long as your property contains valid JSON you can then use this tab to update the value in CodeMirror and get all the linting and formatting that comes with it.
+
+![Error in Property](/public/screenshots/property_error.png)  
+_Figure 8: Example of editing a property which has a JSON error_
 
 ---
 

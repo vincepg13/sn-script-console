@@ -70,6 +70,15 @@ RestApi({
       path: '/policy/{id}',
     },
     {
+      $id: Now.ID['sc-core-property'],
+      name: 'Get Property Data',
+      method: 'GET',
+      script: Now.include('./property.server.js'),
+      consumes: 'application/json',
+      produces: 'application/json,application/xml,text/xml',
+      path: '/property/{id}',
+    },
+    {
       $id: Now.ID['sc-core-global-method'],
       method: 'POST',
       name: 'Global Method',

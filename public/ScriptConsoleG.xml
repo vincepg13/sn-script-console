@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<unload unload_date="2025-10-25 11:46:14">
+<unload unload_date="2025-12-18 16:48:53">
 <sys_script_include action="INSERT_OR_UPDATE">
 <access>public</access>
 <active>true</active>
 <api_name>global.ScriptConsoleG</api_name>
 <caller_access/>
 <client_callable>false</client_callable>
-<description>Global dependencies for the script console application....</description>
+<description>Global dependencies for the script console application.</description>
 <mobile_callable>false</mobile_callable>
 <name>ScriptConsoleG</name>
 <sandbox_callable>false</sandbox_callable>
@@ -165,7 +165,7 @@ ScriptConsoleG.prototype = {
   },
 
   autoScopeSwitch: function (gr) {
-    var scopeChange;
+    var scopeChange = this.refreshScope();
 
     if (gs.getPreference('script_console.scope_switch') === 'true') {
       const scope = gr.sys_scope.toString();
@@ -173,6 +173,35 @@ ScriptConsoleG.prototype = {
     }
 
     return scopeChange || undefined;
+  },
+
+  getListMechanic: function (table, view) {
+    const lm = new ListMechanic();
+    lm.setViewName(view || 'Default view');
+
+    const sl = lm._getSysList(table);
+    const cls = sl.getListSet();
+    lm.applyRules(cls, table);
+
+    const cols = j2js(cls.columns).map(c => ({ label: c.label, value: c.value }));
+    const selected = j2js(cls.selected).map(s => ({ label: s.label, value: s.value }));
+
+    return {
+      unselected: cols,
+      selected: selected,
+      isUserList: sl.isUserList()
+    };
+  },
+
+  setListMechanic: function (table, fields, view) {
+    lm = new ListMechanic();
+    lm.setViewName(view || 'Default view');
+
+    if (fields) {
+      lm.saveList(table, fields);
+    } else {
+      lm.reset(table);
+    }
   },
 
   getTableData: function (gr, page, pageSize, query) {
@@ -207,8 +236,8 @@ ScriptConsoleG.prototype = {
 
       fields.forEach(f => {
         item[f.name] = {
-          value: grRecord.getValue(f.name) || '',
-          display_value: grRecord.getDisplayValue(f.name) || ''
+          value: (grRecord.getValue(f.name) || '').substring(0, 200),
+          display_value: (grRecord.getDisplayValue(f.name) || '').substring(0, 200)
         };
       });
       records.push(item);
@@ -228,15 +257,22 @@ ScriptConsoleG.prototype = {
     };
   },
 
-  getListFields: function (table, userTableView, userId) {
+  _getListGr: function (table, userTableView, userId) {
     const grList = new GlideRecord('sys_ui_list');
     grList.addQuery('name', table);
     grList.addQuery('view.name', userTableView);
     grList.addQuery('sys_user', userId).addOrCondition('sys_user', '');
     grList.addNullQuery('parent');
     grList.orderByDesc('sys_user');
+    grList.orderByDesc('sys_created_on');
     grList.setLimit(1);
     grList.query();
+    return grList;
+  },
+
+  getListFields: function (table, userTableView, userId) {
+    let grList = this._getListGr(table, userTableView, userId);
+    if (!grList.hasNext()) grList = this._getListGr(table, '', userId);
 
     const listId = grList.next() ? grList.getUniqueValue() : '';
     if (!listId) {
@@ -422,19 +458,55 @@ ScriptConsoleG.prototype = {
     return gr.toString();
   },
 
+  savePolicyActions: function (policyData) {
+    const inserted = policyData.toInsert.map(action => {
+      const gr = new GlideRecord('sys_ui_policy_action');
+      gr.initialize();
+
+      Object.keys(action).forEach(field => {
+        gr[field] = action[field];
+      });
+
+      return gr.insert();
+    });
+
+    const updated = policyData.toUpdate.map(action => {
+      const gr = new GlideRecord('sys_ui_policy_action');
+      const targetGuid = action.sys_id;
+      delete action.sys_id;
+
+      if (!gr.get(targetGuid)) return '';
+
+      Object.keys(action).forEach(field => {
+        gr[field] = action[field];
+      });
+
+      return gr.update();
+    });
+
+    if (policyData.toDelete.length) {
+      const grPolicy = new GlideRecord('sys_ui_policy_action');
+      grPolicy.addQuery('sys_id', 'IN', policyData.toDelete);
+      grPolicy.deleteMultiple();
+    }
+
+    return { inserted, updated, deleted: policyData.toDelete };
+  },
+
   type: 'ScriptConsoleG'
-};]]></script>
+};
+]]></script>
 <sys_class_name>sys_script_include</sys_class_name>
 <sys_created_by>vinceadmin</sys_created_by>
 <sys_created_on>2025-09-24 11:40:00</sys_created_on>
 <sys_id>e47924f383c8be1025451429feaad34f</sys_id>
-<sys_mod_count>94</sys_mod_count>
+<sys_mod_count>178</sys_mod_count>
 <sys_name>ScriptConsoleG</sys_name>
 <sys_package display_value="Global" source="global">global</sys_package>
 <sys_policy/>
 <sys_scope display_value="Global">global</sys_scope>
 <sys_update_name>sys_script_include_e47924f383c8be1025451429feaad34f</sys_update_name>
 <sys_updated_by>vinceadmin</sys_updated_by>
-<sys_updated_on>2025-10-25 11:45:24</sys_updated_on>
+<sys_updated_on>2025-12-18 16:46:02</sys_updated_on>
 </sys_script_include>
 </unload>

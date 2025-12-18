@@ -26,8 +26,12 @@ export const ScopeUpdateSchema = z.object({
   updateSet: UpdateSetSchema,
 });
 
+const sidebarWidthOptions = z.enum(['default', 'wide', 'extra_wide']);
+export type SidebarWidth = z.infer<typeof sidebarWidthOptions>;
+
 export const GeneralPreferences = z.object({
   theme: z.custom<CmThemeValue>(),
+  sidebarWidth: sidebarWidthOptions,
   lastWidget: z.string().optional().nullable(),
   sidebarOpen: z.string().transform(val => val === 'true'),
   autoScopeSwitch: z.string().transform(val => val === 'true'),
@@ -37,6 +41,7 @@ export const GeneralPreferences = z.object({
 export const DefaultPreferences: z.infer<typeof GeneralPreferences> = {
   theme: 'atom',
   sidebarOpen: true,
+  sidebarWidth: 'default',
   autoScopeSwitch: false,
   autoPackageAdd: false,
   directToWidget: false,

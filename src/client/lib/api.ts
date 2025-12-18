@@ -16,6 +16,7 @@ import {
   WidgetRes,
   WidgetSchema,
 } from '@/types/widget';
+import { PropertySchema } from '@/types/property';
 
 const tableApi = '/api/now/table';
 const coreApi = '/api/x_659318_script/console_core';
@@ -64,6 +65,13 @@ export async function getPolicyData(id: string, signal: AbortSignal) {
 
   policyData.tableMeta = data.result.columns;
   return PolicySchema.parse(policyData);
+}
+
+export async function getPropertyData(id: string, signal: AbortSignal) {
+  const axios = getAxiosInstance();
+
+  const res = await axios.get(`${coreApi}/property/${id}`, { signal });
+  return PropertySchema.parse(res.data.result);
 }
 
 export async function getScriptData(table: string, id: string, field: string, signal: AbortSignal) {

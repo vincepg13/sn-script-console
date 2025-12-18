@@ -85,6 +85,12 @@ Each item should be the table name mapped to an object:
       "label": "REST Endpoint",
       "field": "operation_script",
       "display": ["name"]
+    },
+    "sys_script_fix": {
+      "table": "sys_script_fix",
+      "label": "Fix Scripts",
+      "field": "script",
+      "display": ["name"]
     }
   }`,
 });

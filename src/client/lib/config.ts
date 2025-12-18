@@ -1,3 +1,4 @@
+import { SidebarWidth } from './../types/app';
 import { ScriptTableItems } from '@/types/app';
 import { CmThemeValue } from 'sn-shadcn-kit/script';
 import { LintLevel, ObjectWrap, TrailingComma } from '@/types/script';
@@ -17,6 +18,7 @@ export const instanceURI =
 
 //Preference Keys
 export const sidebarPrefKey = 'script_console.sidebar_open';
+export const sidebarWidthKey = 'script_console.sidebar_width';
 export const packagePref = 'script_console.current_package';
 export const packagePrefix = 'script_console.package.';
 export const prettierPrefKey = 'script_console.prettier_config';
@@ -90,6 +92,13 @@ export const themeOptions: ThemeOption[] = [
   { value: 'monokai', label: 'Monokai' },
   { value: 'androidstudio', label: 'Android Studio' },
   { value: 'copilot', label: 'GitHub Copilot' },
+];
+
+type SidebarWidthOption = { value: SidebarWidth; label: string };
+export const sidebarWidthOptions: SidebarWidthOption[] = [
+  { value: 'default', label: 'Default' },
+  { value: 'wide', label: 'Wide' },
+  { value: 'extra_wide', label: 'Extra Wide' },
 ];
 
 //Widget Related

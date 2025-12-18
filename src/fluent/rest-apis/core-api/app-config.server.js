@@ -20,7 +20,7 @@
 
   const user = {
     username: gs.getUserName(),
-    guid: gs.getUserID(),
+    guid: gs.getUserID()
   };
 
   const appDataConfig = { scope, updateSet, user };
@@ -28,9 +28,10 @@
     lastWidget: gUser.getPreference('script_console.widget'),
     theme: gUser.getPreference('script_console.codemirror_theme') || 'atom',
     sidebarOpen: gUser.getPreference('script_console.sidebar_open') || 'true',
+    sidebarWidth: gUser.getPreference('script_console.sidebar_width') || 'default',
     autoScopeSwitch: gUser.getPreference('script_console.scope_switch') || 'false',
     autoPackageAdd: gUser.getPreference('script_console.package_add') || 'false',
-    directToWidget: gUser.getPreference('script_console.direct_widget') || 'false',
+    directToWidget: gUser.getPreference('script_console.direct_widget') || 'false'
   };
 
   //Set prettier config to default and override if custom options available
@@ -43,7 +44,7 @@
   const currentPackage = gUser.getPreference('script_console.current_package') || '';
   appDataConfig.packageData = {
     currentPackage,
-    packages: util.getMyPackages(),
+    packages: util.getMyPackages()
   };
 
   appDataConfig.packageData.packageItems = currentPackage ? util.getPackageItems(currentPackage) : {};
