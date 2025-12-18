@@ -20,7 +20,7 @@ export function PropertyHeader() {
             System Property
           </TabsTrigger>
           <TabsTrigger value="value" className="px-3">
-            Value Editor
+            JSON Editor
           </TabsTrigger>
         </TabsList>
       </div>

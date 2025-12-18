@@ -74,6 +74,16 @@ Property({
         "description": "Define your own scripted REST endpoints to handle incoming requests."
       },
       {
+        "title": "System Properties",
+        "href": "/list/sys_properties",
+        "description": "Update system properties via their form or make use of script consoles value editor."
+      },
+      {
+        "title": "Fix Scripts",
+        "href": "/list/sys_script_fix",
+        "description": "Scripted logic that runs after an application is installed or upgraded."
+      },
+      {
         "title": "Workflow Editor (Legacy)",
         "href": "INSTANCE_URI/workflow_ide.do?sysparm_nostack=true&sysparm_use_polaris=false",
         "target": "_blank",
@@ -84,11 +94,6 @@ Property({
         "href": "INSTANCE_URI/now/workflow-studio/home/flow",
         "target": "_blank",
         "description": "Go to flow designer to create and manage automated workflows."
-      },
-      {
-        "title": "System Properties",
-        "href": "/list/sys_properties",
-        "description": "Update system properties via their form or make use of script consoles value editor."
       }
     ]
   },
