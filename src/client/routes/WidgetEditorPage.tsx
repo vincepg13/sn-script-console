@@ -12,8 +12,8 @@ export default function WidgetEditorPage() {
 }
 
 function GuardedEditor() {
-  const { stagedChanges } = useWidget();
-  const guard = useUnsavedChanges(stagedChanges);
+  const { hasLocalEdits } = useWidget();
+  const guard = useUnsavedChanges(hasLocalEdits);
 
   return (
     <>

@@ -47,11 +47,11 @@ const angularTernConfig = {
     $timeout: '$timeout',
     $q: '$q',
   },
-}
+};
 
 export function WidgetEditor() {
   const qc = useQueryClient();
-  const { widget, stagedChanges, setStagedChanges, getScriptRef, setScriptRef, setFieldValue, toggleFieldVisibility } =
+  const { widget, hasLocalEdits, getScriptRef, setScriptRef, discardLocalEdits, setFieldValue, toggleFieldVisibility } =
     useWidget();
 
   const locked = widget.security.canWrite === false;
@@ -69,36 +69,41 @@ export function WidgetEditor() {
   }, [esLintConfig, esVersion]);
 
   const externalChangeEvent = useEffectEvent(() => {
-    if (!stagedChanges) setScriptVals(getScriptVals(widget.fields));
+    if (!hasLocalEdits) setScriptVals(getScriptVals(widget.fields));
   });
   useEffect(() => externalChangeEvent(), [widget.fields]);
 
-  const stagedRef = useRef(stagedChanges);
+  const hasLocalEditsRef = useRef(hasLocalEdits);
   useEffect(() => {
-    stagedRef.current = stagedChanges;
-  }, [stagedChanges]);
+    hasLocalEditsRef.current = hasLocalEdits;
+  }, [hasLocalEdits]);
+
+  const warnRef = useRef(warn);
+  useEffect(() => {
+    warnRef.current = warn;
+  }, [warn]);
 
   const handleWatcher = (e: SnAmbMessage) => {
-    if (e && e.data && e.data.changes) {
-      if (e.data.record && e.data.changes.some(item => scriptFieldNames.includes(item))) {
-        if (justSaved.current) {
-          justSaved.current = false;
-          return;
-        }
+    if (warnRef.current || !e?.data?.record || !e?.data?.changes) return;
 
-        if (stagedRef.current) return setWarn(true);
+    const touchesScript = e.data.changes.some((item: string) => scriptFieldNames.includes(item));
+    if (!touchesScript) return;
 
-        qc.invalidateQueries({ queryKey: ['widgetData', widget.guid] });
-      }
+    if (justSaved.current) {
+      justSaved.current = false;
+      return;
     }
+
+    if (hasLocalEditsRef.current) {
+      setWarn(true);
+      return;
+    }
+
+    qc.invalidateQueries({ queryKey: ['widgetData', widget.guid] });
   };
 
   const setLocalFieldValue = useCallback(
     (fieldName: string, value: string) => {
-      setScriptVals(prev => ({
-        ...prev,
-        [fieldName]: value,
-      }));
       setFieldValue(fieldName, value);
     },
     [setFieldValue]
@@ -155,7 +160,7 @@ export function WidgetEditor() {
                   cmContainerClasses="flex-1 min-h-0 overflow-auto"
                   onReady={ref => setScriptRef(target.name, ref)}
                   bounceTime={200}
-                  // onBlur={(v: string) => setLocalFieldValue(target.name, v)}
+                  onBlur={(v: string) => setLocalFieldValue(target.name, v)}
                   onChange={(v: string) => setLocalFieldValue(target.name, v)}
                   customToolbar={
                     <div className="flex justify-between items-center px-4 pt-1.5">
@@ -183,14 +188,11 @@ export function WidgetEditor() {
         setOpen={setWarn}
         onConfirm={() => {
           setWarn(false);
-          setStagedChanges(true);
         }}
         onCancel={() => {
           setWarn(false);
-          setStagedChanges(false);
-          qc.invalidateQueries({ queryKey: ['widgetData', widget.guid] }).then(() => {
-            setScriptVals(getScriptVals(widget.fields));
-          });
+          discardLocalEdits();
+          qc.invalidateQueries({ queryKey: ['widgetData', widget.guid] });
         }}
       />
       <MountWidgetWatcher key={widget.guid} guid={widget.guid} cb={handleWatcher} />

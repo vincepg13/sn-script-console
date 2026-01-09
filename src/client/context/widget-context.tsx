@@ -6,7 +6,7 @@ import { DependencyCounts, WidgetRes } from '@/types/widget';
 import { useSharedRouteConfig } from '@/hooks/useSharedConfig';
 import { GeneralLoader } from '@/components/generic/GeneralLoader';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
-import React, { createContext, useContext, useCallback, useEffect, useState, RefObject, useRef } from 'react';
+import React, { createContext, useContext, useCallback, useEffect, useState, RefObject, useRef, useMemo } from 'react';
 
 type SaveData = Record<string, string>;
 
@@ -21,8 +21,8 @@ interface WidgetContextValue {
   getScriptRef: (fieldName: string) => RefObject<SnCodeMirrorHandle | null>;
   setScriptRef: (fieldName: string, ref: SnCodeMirrorHandle | null) => void;
 
-  stagedChanges: boolean;
-  setStagedChanges: (staged: boolean) => void;
+  hasLocalEdits: boolean;
+  discardLocalEdits: () => void;
   applySavedChanges: (changes: Partial<SaveData>) => void;
   patchDependencyCounts: (counts: DependencyCounts) => void;
 }
@@ -73,7 +73,6 @@ export const WidgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   });
 
   const [saveData, setSaveData] = useState<SaveData>({});
-  const [stagedChanges, setStagedChanges] = useState(false);
 
   useSharedRouteConfig(data, isFetching, qc);
 
@@ -82,20 +81,19 @@ export const WidgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     (name: keyof WidgetRes['fields'], raw: unknown) => {
       let t = String(raw ?? '');
 
-      // 1) EOLs: turn CRLF or lone CR into LF
+      // 1) Normalize line endings to LF
       t = t.replace(/\r\n?/g, '\n');
 
-      // 2) Strip trailing spaces per line (optional but you already do this)
+      // 2) Strip trailing spaces per line
       t = t.replace(/[ \t]+$/gm, '');
 
-      // 3) Drop BOM if present (some editors strip it)
+      // 3) Drop BOM if present
       t = t.replace(/^\uFEFF/, '');
 
-      // 4) Normalize final newline policy: choose NONE (or choose exactly one)
-      //    Pick one and be consistent across both sides.
+      // 4) Normalize final newline policy
       t = t.replace(/\n+$/g, '');
 
-      // 5) (Your special-case) compact HTML gaps if desired
+      // 5) compact HTML gaps for HTML/template fields
       const fieldType = data?.fields[name]?.type;
       if (fieldType && /html|template/i.test(String(fieldType))) {
         t = t.replace(/>\s+</g, '><');
@@ -106,6 +104,19 @@ export const WidgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     [data]
   );
 
+  // Normalize and cache server values for comparison
+  const serverNormRef = useRef<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!data) return;
+    const next: Record<string, string> = {};
+    for (const name of Object.keys(data.fields)) {
+      const k = name as keyof WidgetRes['fields'];
+      next[name] = normalizeForCompare(k, data.fields[k]?.value ?? '');
+    }
+    serverNormRef.current = next;
+  }, [data, normalizeForCompare]);
+
   // Stage a single field
   const setFieldValue = useCallback(
     (fieldName: keyof WidgetRes['fields'], value: string) => {
@@ -115,7 +126,7 @@ export const WidgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const next = { ...prev };
         const key = String(fieldName);
 
-        const serverVal = normalizeForCompare(fieldName, data.fields[fieldName]?.value ?? '');
+        const serverVal = serverNormRef.current[key] || '';
         const stagedVal = normalizeForCompare(fieldName, value);
 
         if (stagedVal === serverVal) {
@@ -124,19 +135,22 @@ export const WidgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           next[key] = value;
         }
 
-        setStagedChanges(Object.keys(next).length > 0);
         return next;
       });
     },
     [data, normalizeForCompare]
   );
 
+  const hasLocalEdits = useMemo(() => Object.keys(saveData).length > 0, [saveData]);
+
   // Reset staged changes immediately when navigating to a different widget
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSaveData({});
-    setStagedChanges(false);
   }, [widgetId]);
+
+  const discardLocalEdits = useCallback(() => {
+    setSaveData({});
+  }, []);
 
   const toggleFieldVisibility = useCallback(
     (fieldName: string) => {
@@ -180,14 +194,6 @@ export const WidgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
 
       setSaveData({});
-      setStagedChanges(false);
-      // setSaveData(prev => {
-      //   if (!prev) return prev;
-      //   const next = { ...prev };
-      //   for (const name of Object.keys(changes)) delete next[name];
-      //   setStagedChanges(Object.keys(next).length > 0);
-      //   return next;
-      // });
     },
     [qc, widgetId]
   );
@@ -219,15 +225,15 @@ export const WidgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       value={{
         saveData,
         widget: data,
-        stagedChanges,
+        hasLocalEdits,
         isFetching,
         getScriptRef,
         setScriptRef,
         setFieldValue,
+        discardLocalEdits,
         applySavedChanges,
         patchDependencyCounts,
         toggleFieldVisibility,
-        setStagedChanges,
       }}
     >
       {children}
