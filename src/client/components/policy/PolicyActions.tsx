@@ -3,6 +3,7 @@ import { Button } from '../ui/button';
 import { Spinner } from '../ui/spinner';
 import { errorHandler } from '@/lib/utils';
 import { useEffect, useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { postPolicyActions } from '@/lib/api';
 import { usePolicy } from '@/context/policy-context';
 import { objectEquals } from '@observ33r/object-equals';
@@ -43,7 +44,6 @@ const buildActionBody = (action: PolicyAction, table?: string, policyGuid?: stri
 export function PolicyActions() {
   const { policy, inScope, actions, patchActions, registerDirtyChecker } = usePolicy();
 
-  const [saving, setSaving] = useState(false);
   const [localActions, setLocalActions] = useState(actions);
   const [fields, setFields] = useState<FieldsByTable | undefined>(
     policy.type === "sys_ui_policy" ? { [policy.table!]: policy.meta } : undefined
@@ -95,8 +95,17 @@ export function PolicyActions() {
     return postPolicyActions(actions, signal);
   });
 
-  const onSave = async () => {
-    setSaving(true);
+  const saveMutation = useMutation({
+    mutationKey: ['policyActionsSave', policy.guid],
+    mutationFn: (payload: PolicyActionData) => saveActions.run(payload),
+    onSuccess: () => {
+      toast.success('Policy actions saved');
+      patchActions(localActions);
+    },
+    onError: e => errorHandler(e, 'Error saving policy actions'),
+  });
+
+  const onSave = () => {
     const toInsert = localActions
       .filter(action => action.guid.startsWith('new:'))
       .map(action => buildActionBody(action, policy.table, policy.guid, policy.scope));
@@ -109,15 +118,7 @@ export function PolicyActions() {
       .filter(action => !localActions.find(a => a.guid === action.guid))
       .map(action => action.guid);
 
-    try {
-      await saveActions.run({ toInsert, toUpdate, toDelete });
-      toast.success('Policy actions saved');
-      patchActions(localActions);
-    } catch (e) {
-      errorHandler(e, 'Error saving policy actions');
-    } finally {
-      setSaving(false);
-    }
+    saveMutation.mutate({ toInsert, toUpdate, toDelete });
   };
 
   return (
@@ -135,8 +136,8 @@ export function PolicyActions() {
             <Button variant="outline" onClick={addAction}>
               <BadgePlus /> Add Action
             </Button>
-            <Button onClick={onSave} disabled={saving}>
-              {saving ? <Spinner type="loader" /> : <Save />} Save
+            <Button onClick={onSave} disabled={saveMutation.isPending}>
+              {saveMutation.isPending ? <Spinner type="loader" /> : <Save />} Save
             </Button>
           </div>
         )}

@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { BadgePlus, Ban } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { useMutation } from '@tanstack/react-query';
 import {
   Dialog,
   DialogClose,
@@ -27,7 +28,20 @@ export function NewWidgetModal({ button, tooltip }: { button?: React.ReactNode; 
   const controllerRef = useRef(new AbortController());
 
   const [open, setOpen] = useState(false);
-  const [creating, setCreating] = useState(false);
+
+  const createMutation = useMutation({
+    mutationKey: ['widgetCreate'],
+    mutationFn: ({ data, signal }: { data: NewWidget; signal: AbortSignal }) => createWidget(data, signal),
+    onSuccess: res => {
+      if (res) {
+        setOpen(false);
+        navigate('/widget_editor/' + res);
+      } else {
+        toast.error('Failed to create widget');
+      }
+    },
+    onError: error => errorHandler(error, 'Failed to create widget'),
+  });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     controllerRef.current.abort();
@@ -37,20 +51,7 @@ export function NewWidgetModal({ button, tooltip }: { button?: React.ReactNode; 
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
 
-    try {
-      setCreating(true);
-      const res = await createWidget(data as NewWidget, controllerRef.current.signal);
-      if (res) {
-        setOpen(false);
-        navigate('/widget_editor/' + res);
-      } else {
-        toast.error('Failed to create widget');
-      }
-    } catch (error) {
-      errorHandler(e, 'Failed to create widget');
-    } finally {
-      setCreating(false);
-    }
+    createMutation.mutate({ data: data as NewWidget, signal: controllerRef.current.signal });
   };
 
   const DefaultTrigger = (
@@ -108,7 +109,7 @@ export function NewWidgetModal({ button, tooltip }: { button?: React.ReactNode; 
               </Button>
             </DialogClose>
             <Button type="submit" className="flex-1">
-              {creating ? (
+              {createMutation.isPending ? (
                 <>
                   <LoadingSpinner /> Creating...
                 </>

@@ -1,14 +1,15 @@
 import { toast } from 'sonner';
-import { MessageCircleWarning, Save } from 'lucide-react';
+import { JSX, useRef } from 'react';
 import { Button } from '../ui/button';
 import { Spinner } from '../ui/spinner';
 import { patchRecord } from '@/lib/api';
 import { EditorJson } from './EditorJson';
 import { errorHandler } from '@/lib/utils';
-import { JSX, useRef, useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { useProperty } from '@/context/property-context';
-import { useCancelableFn } from '@/hooks/useAbortableController';
+import { MessageCircleWarning, Save } from 'lucide-react';
 import { useSaveShortcut } from '@/hooks/useSaveShortcut';
+import { useCancelableFn } from '@/hooks/useAbortableController';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
 type SaveData = {
@@ -17,7 +18,6 @@ type SaveData = {
 
 export function ValueEditor() {
   const { property } = useProperty();
-  const [saving, setSaving] = useState(false);
   const saveBtnRef = useRef<HTMLButtonElement>(null);
   const saveDataRef = useRef<SaveData>({ value: property.value });
 
@@ -31,19 +31,12 @@ export function ValueEditor() {
     return patchRecord('sys_properties', property.guid, saveDataRef.current, signal);
   });
 
-  const handleSave = async () => {
-    console.log('Saving data:', saveDataRef.current);
-    setSaving(true);
-
-    try {
-      await saveProperty.run();
-      toast.success('Property values updated');
-    } catch (error) {
-      errorHandler(error, 'Failed to save property');
-    } finally {
-      setSaving(false);
-    }
-  };
+  const saveMutation = useMutation({
+    mutationKey: ['propertySave', property.guid],
+    mutationFn: () => saveProperty.run(),
+    onSuccess: () => toast.success('Property value updated'),
+    onError: error => errorHandler(error, 'Failed to save property'),
+  });
 
   let editor: JSX.Element | null = null;
 
@@ -77,8 +70,12 @@ export function ValueEditor() {
         <div className="flex flex-col gap-4">
           {editor}
           <div className="flex justify-center">
-            <Button ref={saveBtnRef} disabled={!property.canWrite || saving} onClick={handleSave}>
-              {saving ? <Spinner type="loader" /> : <Save />}
+            <Button
+              ref={saveBtnRef}
+              disabled={!property.canWrite || saveMutation.isPending}
+              onClick={() => saveMutation.mutate()}
+            >
+              {saveMutation.isPending ? <Spinner type="loader" /> : <Save />}
               Save Property
             </Button>
           </div>

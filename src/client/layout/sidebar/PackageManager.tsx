@@ -1,11 +1,12 @@
-import { useEffect, useEffectEvent, useMemo, useState } from 'react';
-import { BadgePlus, Pencil, Settings2, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppData } from '@/context/app-context';
+import { NewPackageDialog } from './NewPackageDialog';
+import { DeletePackageDialog } from './DeletePackageDialog';
+import { useEffect, useEffectEvent, useMemo, useState } from 'react';
+import { BadgePlus, Pencil, Settings2, Trash } from 'lucide-react';
 import { SimpleTooltip } from '@/components/generic/SimpleTooltip';
 import { SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { NewPackageDialog } from './NewPackageDialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +16,6 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { DeletePackageDialog } from './DeletePackageDialog';
 
 type pkgType = 'create' | 'rename';
 

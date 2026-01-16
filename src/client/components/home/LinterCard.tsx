@@ -6,6 +6,7 @@ import { ExternalLink, Save } from 'lucide-react';
 import { useAppData } from '@/context/app-context';
 import { SimpleTooltip } from '../generic/SimpleTooltip';
 import { useCallback, useEffect, useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { defaultLintLevels, eslintPrefKey } from '@/lib/config';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
 import {
@@ -24,7 +25,6 @@ import { RuleEntry } from 'sn-shadcn-kit/script';
 import { toast } from 'sonner';
 
 export function LinterCard({resync}: {resync: () => void}) {
-  const [saving, setSaving] = useState(false);
   const { config, setConfig } = useAppData();
   const lintServer = config.esLintConfig!;
 
@@ -46,22 +46,21 @@ export function LinterCard({resync}: {resync: () => void}) {
     [setLinter]
   );
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      setSaving(true);
-      await setPreference(eslintPrefKey, JSON.stringify(linter));
-
+  const saveMutation = useMutation({
+    mutationKey: ['lintConfigSave'],
+    mutationFn: () => setPreference(eslintPrefKey, JSON.stringify(linter)),
+    onSuccess: () => {
       const newLintConfig = { ...lintServer, rules: linter };
       setConfig({ esLintConfig: newLintConfig });
       toast.success('ESLint settings saved');
       resync();
-    } catch (error) {
-      errorHandler(error, 'Failed to save linter settings');
-    } finally {
-      setSaving(false);
-    }
+    },
+    onError: error => errorHandler(error, 'Failed to save linter settings'),
+  });
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    saveMutation.mutate();
   };
 
   return (
@@ -126,13 +125,13 @@ export function LinterCard({resync}: {resync: () => void}) {
         </form>
       </CardContent>
       <CardFooter className="flex-col gap-2 mt-auto">
-        <Button type="submit" className="w-full" form="linter-form" disabled={saving}>
-          {saving && (
+        <Button type="submit" className="w-full" form="linter-form" disabled={saveMutation.isPending}>
+          {saveMutation.isPending && (
             <span className="flex items-center gap-2">
               <LoadingSpinner /> Saving...
             </span>
           )}
-          {!saving && (
+          {!saveMutation.isPending && (
             <span className="flex items-center gap-2">
               <Save /> Save Changes
             </span>

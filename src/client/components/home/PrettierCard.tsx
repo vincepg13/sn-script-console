@@ -23,9 +23,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { useMutation } from '@tanstack/react-query';
 
 export function PrettierCard({resync}: {resync: () => void}) {
-  const [saving, setSaving] = useState(false);
   const { config, setConfig } = useAppData();
   const pcServer = config.prettierConfig!;
 
@@ -39,20 +39,20 @@ export function PrettierCard({resync}: {resync: () => void}) {
     [setPrettier]
   );
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      setSaving(true);
-      await setPreference(prettierPrefKey, JSON.stringify(prettier));
+  const saveMutation = useMutation({
+    mutationKey: ['prettierConfigSave'],
+    mutationFn: () => setPreference(prettierPrefKey, JSON.stringify(prettier)),
+    onSuccess: () => {
       setConfig({ prettierConfig: prettier });
       toast.success('Prettier settings saved');
       resync();
-    } catch (error) {
-      errorHandler(error, 'Failed to save prettier settings');
-    } finally {
-      setSaving(false);
-    }
+    },
+    onError: error => errorHandler(error, 'Failed to save prettier settings'),
+  });
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    saveMutation.mutate();
   };
 
   return (
@@ -143,13 +143,13 @@ export function PrettierCard({resync}: {resync: () => void}) {
         </form>
       </CardContent>
       <CardFooter className="flex-col gap-2 mt-auto">
-        <Button type="submit" className="w-full" form="prettier-form" disabled={saving}>
-          {saving && (
+        <Button type="submit" className="w-full" form="prettier-form" disabled={saveMutation.isPending}>
+          {saveMutation.isPending && (
             <span className="flex items-center gap-2">
               <LoadingSpinner /> Saving...
             </span>
           )}
-          {!saving && (
+          {!saveMutation.isPending && (
             <span className="flex items-center gap-2">
               <Save /> Save Changes
             </span>

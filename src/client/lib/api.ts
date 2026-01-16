@@ -25,8 +25,9 @@ const packageApi = '/api/x_659318_script/console_package';
 
 type CloneRes = { guid: string; message: string };
 type MacroRes = { widgetId: string; uiFormatter: string; spFormatter: string };
-type MacroData = { formatter: string; macro: string; table: string; widget: string };
 type Dependency = { table: string; widget: string; dependency: string; linkTable: string };
+export type MacroData = { formatter: string; macro: string; table: string; widget: string };
+
 export type BatchItem = {
   id: string;
   url: string;

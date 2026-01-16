@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 import { DialogHeader, DialogFooter } from '../ui/dialog';
 import { LoadingSpinner } from '../generic/LoadingSpinner';
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose } from '@/components/ui/dialog';
+import { useMutation } from '@tanstack/react-query';
 
 type WidgetCloneProps = {
   widgetId: string;
@@ -21,21 +22,18 @@ type WidgetCloneProps = {
 
 export function WidgetClone({ widgetId, oName, oId, open, setOpen }: WidgetCloneProps) {
   const navigate = useNavigate();
-  const [cloning, setCloning] = useState(false);
   const [name, setName] = useState(`${oName} Copy`);
   const [id, setId] = useState(oId ? `${oId}-copy` : '');
 
   const controllerRef = useRef(new AbortController());
   useEffect(() => () => controllerRef.current?.abort(), []);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    controllerRef.current.abort();
-    controllerRef.current = new AbortController();
+  const cloneMutation = useMutation({
+    mutationKey: ['widgetClone', widgetId],
+    mutationFn: ({ name, id, signal }: { name: string; id: string; signal: AbortSignal }) =>
+      cloneWidget(widgetId, name, id, signal),
     
-    try {
-      setCloning(true);
-      const cloneRes = await cloneWidget(widgetId, name, id, controllerRef.current.signal);
+    onSuccess: cloneRes => {
       if (cloneRes.guid) {
         navigate('/widget_editor/' + cloneRes.guid);
         toast.success('Widget cloned');
@@ -43,11 +41,16 @@ export function WidgetClone({ widgetId, oName, oId, open, setOpen }: WidgetClone
       } else {
         toast.error(cloneRes.message);
       }
-    } catch (e) {
-      errorHandler(e, 'Failed to clone widget');
-    } finally {
-      setCloning(false);
-    }
+    },
+    onError: e => errorHandler(e, 'Failed to clone widget'),
+  });
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    controllerRef.current.abort();
+    controllerRef.current = new AbortController();
+
+    cloneMutation.mutate({ name, id, signal: controllerRef.current.signal });
   };
 
   const buildId = (name: string) => {
@@ -108,8 +111,8 @@ export function WidgetClone({ widgetId, oName, oId, open, setOpen }: WidgetClone
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" className="flex-1" form="clone-form" disabled={cloning}>
-              {cloning ? <LoadingSpinner /> : <CopyPlus className="h-5 w-5" />}
+            <Button type="submit" className="flex-1" form="clone-form" disabled={cloneMutation.isPending}>
+              {cloneMutation.isPending ? <LoadingSpinner /> : <CopyPlus className="h-5 w-5" />}
               Clone widget
             </Button>
           </DialogFooter>
