@@ -30,8 +30,9 @@ export function WidgetCard({ name, scope, guid, updater }: WidgetCardItem) {
           <Badge variant="outline">
             <Clock /> {updater.updated}
           </Badge>
-          <Badge variant="outline">
-            <SquareCode /> {scope}
+          <Badge variant="outline" className="min-w-0 max-w-full gap-1">
+            <SquareCode className="shrink-0" />
+            <span className="truncate">{scope}</span>
           </Badge>
         </div>
       </CardContent>

@@ -1,9 +1,11 @@
-# Repository Guide (AGENTS)
+# Agent Instructions: ServiceNow Script Console
 
-## Overview
+## 🤖 Persona
+You are a ServiceNow Pro-Code Architect. You specialize in typescript with both the ServiceNow SDK (Fluent) and modern React (v19). You prioritize type safety, performance, and shadcn/ui patterns.
+
+## Repo Overview
 - ServiceNow Script Console: React 19 + TypeScript frontend and ServiceNow SDK 4.x backend metadata in one repo via ServiceNow Fluent.
 - Target users: ServiceNow pro-code developers; focuses on fast editing of script-based records.
-- Includes a global Script Include (`ScriptConsoleG`) required for cross-scope access in ServiceNow.
 
 ## Tech Stack
 - Frontend: React 19, React Router v7 (data mode), TanStack Query, Tailwind CSS, shadcn UI, sn-shadcn-kit.
@@ -13,7 +15,6 @@
 ## Key Paths
 - `src/client`: React application code (routes, components, state, hooks).
 - `src/fluent`: ServiceNow Fluent metadata (server-side app definitions).
-- `public`: static assets, screenshots, update set XMLs.
 - `scripts`: build/utility scripts (e.g., build confirmation).
 - `dist` / `target`: build artifacts.
 
@@ -36,7 +37,7 @@
 - Core dependencies: React Router v7, TanStack Query, shadcn UI, sn-shadcn-kit, Tailwind CSS.
 
 ## ServiceNow Metadata Architecture
-- Defined with ServiceNow Fluent in `src/fluent/index.now.ts`.
+- Defined with ServiceNow Fluent in `now.ts` files.
 - Grouped by metadata type in `src/fluent`:
   - `access-controls`
   - `properties`
@@ -45,14 +46,6 @@
   - `ui-pages`
   - `generated` (SDK output)
 
-## ServiceNow Configuration Notes
-- Replace the scope prefix `x_659318` with your instance prefix when building your own version.
-- System properties control menus and scriptable tables:
-  - `x_659318_script.stats_tables`
-  - `x_659318_script.script_tables`
-  - `x_659318_script.app_menu`
-- Update set install is supported via the update set in  `public`.
-
 ## Routes (High Level)
 - `/`: homepage dashboards and editor configuration
 - `/script`: script editor for a table record
@@ -60,3 +53,13 @@
 - `/policy`: UI policy + actions builder
 - `/property`: JSON-friendly property editor
 - `/list` and `/form`: list view and fallback form view
+
+## Instructions
+- Use tanstack query at the context or route level for asynchronous state management (fetching). Use mutations for posting data. Do not use useEffect for this purpose.
+- Make use of components from the sn-shadcn-kit package where possible.
+- Otherwise, make use of the shadcn/ui suite of components.
+- Tailwind css should strictly be used for styling, no inline styling or css files should be used.
+- Strictly install all new packages as devDependencies using npm i -D. The ServiceNow SDK prefers dependencies installed this way.
+- When working with now.ts fluent files, define the record metadata in the now.ts file then include any necessary code from a seperate js file in the same directory.
+- To link a js file to a now.ts file use `Now.include('path_to_file')` in the relevant field key.
+- For server side ServiceNow code only use Javascript and not Typescript. You can use JS up to the ES2021 standard.
