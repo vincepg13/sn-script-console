@@ -5,6 +5,7 @@ import { LastUpdatedSchema } from './defaults';
 import { ESVersion } from 'sn-shadcn-kit/script';
 import { optionSections, optionTypes } from '@/lib/config';
 
+
 //Widget List Definitions
 const WidgetListItem = z.object({
   name: z.string(),
@@ -17,6 +18,27 @@ const WidgetListItem = z.object({
 export const WidgetListSchema = z.array(WidgetListItem);
 export type WidgetCardItem = z.infer<typeof WidgetListItem>;
 export type WidgetListRes = z.infer<typeof WidgetListSchema>;
+
+//Editor Related Types and constants
+export type SnScriptFieldType = 'script' | 'script_plain' | 'html_template' | 'css';
+export type WidgetFieldVals = {
+  template: string;
+  script: string;
+  client_script: string;
+  css: string;
+  link: string;
+};
+
+export const scriptFieldNames = ['template', 'script', 'client_script', 'css', 'link'];
+export const angularTernConfig = {
+  injectorToDefKey: {
+    $scope: 'Scope',
+    $rootScope: 'Scope',
+    $http: '$http',
+    $timeout: '$timeout',
+    $q: '$q',
+  },
+};
 
 //Single Widget Definitions
 const FieldSchema = z.object({

@@ -122,14 +122,15 @@ export const WidgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     (fieldName: keyof WidgetRes['fields'], value: string) => {
       if (!data) return;
 
+      const key = String(fieldName);
+      const serverVal = serverNormRef.current[key] || '';
+      const stagedVal = normalizeForCompare(fieldName, value);
+      const hasChange = stagedVal !== serverVal;
+
       setSaveData(prev => {
         const next = { ...prev };
-        const key = String(fieldName);
 
-        const serverVal = serverNormRef.current[key] || '';
-        const stagedVal = normalizeForCompare(fieldName, value);
-
-        if (stagedVal === serverVal) {
+        if (!hasChange) {
           delete next[key];
         } else {
           next[key] = value;
@@ -137,6 +138,8 @@ export const WidgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
         return next;
       });
+
+      return hasChange;
     },
     [data, normalizeForCompare]
   );
