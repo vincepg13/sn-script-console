@@ -8,6 +8,7 @@ import { useNavigate, useParams } from 'react-router';
 import { useSharedRouteConfig } from '@/hooks/useSharedConfig';
 import { SnAmbMessage, useRecordWatch } from 'sn-shadcn-kit/amb';
 import { GeneralLoader } from '@/components/generic/GeneralLoader';
+import { SessionExpiredDialog } from '@/components/generic/SessionExpiredDialog';
 import { ESVersion, SnCodeMirrorHandle } from 'sn-shadcn-kit/script';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createContext, RefObject, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
@@ -87,6 +88,9 @@ export const ScriptProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setStagedChanges(!same);
   }, [serverNorm]);
 
+  const errorStatus = isAxiosError(error) ? error.response?.status ?? error.status : undefined;
+  const isUnauthorized = errorStatus === 401;
+
   useEffect(() => {
     if ((table && id && !targetField) || (isAxiosError(error) && error.status == 500)) {
       navigate(`/form/${table}/${id}`, { replace: true });
@@ -117,7 +121,7 @@ export const ScriptProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   if (!table || !id) return null;
   if (isLoading) return <GeneralLoader />;
 
-  if (error) {
+  if (error && !isUnauthorized) {
     if (isAxiosError(error) && (error.status == 500 || error.status == 404)) return null;
     console.error('Error loading script data', error);
     throw new Error('Error loading script data');
@@ -158,6 +162,7 @@ export const ScriptProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setStagedChanges,
       }}
     >
+      <SessionExpiredDialog open={isUnauthorized} onRetry={refetch} />
       {children}
       <MountScriptWatcher key={`${table}:${id!}`} table={table} guid={id!} cb={handleAmbMessage} />
     </ScriptContext.Provider>

@@ -1,10 +1,12 @@
 import { Link, useParams } from 'react-router';
+import { isAxiosError } from 'axios';
 import { openWidgetColumnsKey } from '@/lib/config';
 import { getWidget, setPreference } from '@/lib/api';
 import { SnCodeMirrorHandle } from 'sn-shadcn-kit/script';
 import { DependencyCounts, WidgetRes } from '@/types/widget';
 import { useSharedRouteConfig } from '@/hooks/useSharedConfig';
 import { GeneralLoader } from '@/components/generic/GeneralLoader';
+import { SessionExpiredDialog } from '@/components/generic/SessionExpiredDialog';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { createContext, useContext, useCallback, useEffect, useState, RefObject, useRef, useMemo } from 'react';
 
@@ -64,7 +66,7 @@ export const WidgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     scriptRefsRef.current = {};
   }, [widgetId]);
 
-  const { data, isLoading, isFetching, error } = useQuery({
+  const { data, isLoading, isFetching, error, refetch } = useQuery({
     ...widgetQuery(widgetId),
     refetchOnMount: 'always',
     staleTime: 0,
@@ -201,10 +203,13 @@ export const WidgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     [qc, widgetId]
   );
 
+  const errorStatus = isAxiosError(error) ? error.response?.status ?? error.status : undefined;
+  const isUnauthorized = errorStatus === 401;
+
   if (!id) return <div>Invalid widget ID</div>;
   if (isLoading) return <GeneralLoader />;
 
-  if (error || !data) {
+  if ((error && !isUnauthorized) || !data) {
     return (
       <div className="flex items-center px-4 py-16 h-[70vh] sm:px-6 md:px-8 lg:px-12 xl:px-16">
         <div className="w-full space-y-6 text-center">
@@ -239,6 +244,7 @@ export const WidgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         toggleFieldVisibility,
       }}
     >
+      <SessionExpiredDialog open={isUnauthorized} onRetry={refetch} />
       {children}
     </WidgetContext.Provider>
   );

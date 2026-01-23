@@ -652,6 +652,10 @@ declare global {
             table: 'sys_ws_operation';
             id: 'e629235b5d094c33a17aca4ca20d0fd9';
           };
+          'sc-core-session-token': {
+            table: 'sys_ws_operation';
+            id: '48b28edc8f25410d8dfa099c04f81b53';
+          };
           'sc-package': {
             table: 'sys_ws_definition';
             id: '3c2afd9ae82a4520b0a8e64e0e9f23e2';
