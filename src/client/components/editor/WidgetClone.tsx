@@ -8,7 +8,7 @@ import { Ban, CopyPlus } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { useEffect, useRef, useState } from 'react';
 import { DialogHeader, DialogFooter } from '../ui/dialog';
-import { LoadingSpinner } from '../generic/LoadingSpinner';
+import { SnLoadingSpinner } from 'sn-shadcn-kit/ui';
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose } from '@/components/ui/dialog';
 import { useMutation } from '@tanstack/react-query';
 
@@ -112,7 +112,7 @@ export function WidgetClone({ widgetId, oName, oId, open, setOpen }: WidgetClone
               </Button>
             </DialogClose>
             <Button type="submit" className="flex-1" form="clone-form" disabled={cloneMutation.isPending}>
-              {cloneMutation.isPending ? <LoadingSpinner /> : <CopyPlus className="h-5 w-5" />}
+              {cloneMutation.isPending ? <SnLoadingSpinner /> : <CopyPlus className="h-5 w-5" />}
               Clone widget
             </Button>
           </DialogFooter>

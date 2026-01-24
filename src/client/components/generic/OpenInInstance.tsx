@@ -1,12 +1,12 @@
 import { Link } from 'react-router';
 import { Button } from '../ui/button';
 import { instanceURI } from '@/lib/config';
-import { SimpleTooltip } from './SimpleTooltip';
+import { SnSimpleTooltip } from 'sn-shadcn-kit/ui';
 import { SquareArrowOutUpRight } from 'lucide-react';
 
 export function OpenInInstance({ table, guid }: { table: string; guid: string }) {
   return (
-    <SimpleTooltip content="Open in instance">
+    <SnSimpleTooltip content="Open in instance">
       <Button variant="outline" size="icon" asChild>
         <Link
           to={`${instanceURI}/${table}.do?sys_id=${guid}`}
@@ -17,6 +17,6 @@ export function OpenInInstance({ table, guid }: { table: string; guid: string })
           <SquareArrowOutUpRight />
         </Link>
       </Button>
-    </SimpleTooltip>
+    </SnSimpleTooltip>
   );
 }

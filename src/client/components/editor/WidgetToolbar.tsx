@@ -6,18 +6,18 @@ import { WidgetPicker } from './WidgetPicker';
 import { WidgetOptions } from './WidgetOptions';
 import { WidgetDropdown } from './WidgetDropdown';
 import { NewWidgetModal } from './NewWidgetModal';
-import { deleteRecord, saveWidget } from '@/lib/api';
-import { useWidget } from '@/context/widget-context';
-import { BadgePlus, Save, Trash2 } from 'lucide-react';
-import { ModifyPackage } from '../generic/ModifyPackage';
-import { useSaveShortcut } from '@/hooks/useSaveShortcut';
-import { WidgetDependencies } from './WidgetDependencies';
-import { LoadingSpinner } from '../generic/LoadingSpinner';
-import { GeneralConfirm } from '../generic/GeneralConfirm';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { useAppData } from '@/context/app-context';
 import { useMutation } from '@tanstack/react-query';
+import { deleteRecord, saveWidget } from '@/lib/api';
+import { useWidget } from '@/context/widget-context';
+import { useSaveShortcut } from 'sn-shadcn-kit/hooks';
+import { BadgePlus, Save, Trash2 } from 'lucide-react';
+import { ModifyPackage } from '../generic/ModifyPackage';
+import { WidgetDependencies } from './WidgetDependencies';
+import { SnLoadingSpinner } from 'sn-shadcn-kit/ui';
+import { SnGeneralConfirm } from 'sn-shadcn-kit/ui';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => void }) {
   const navigate = useNavigate();
@@ -126,7 +126,7 @@ export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => v
         <WidgetDropdown widget={widget} />
       </div>
       <div className="ml-auto flex gap-2 items-center">
-        {isFetching && <LoadingSpinner />}
+        {isFetching && <SnLoadingSpinner />}
         {canDelete && (
           <Tooltip>
             <TooltipTrigger asChild>
@@ -153,12 +153,12 @@ export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => v
         />
         {canWrite && (
           <Button onClick={onSave} disabled={saveMutation.isPending}>
-            {saveMutation.isPending ? <LoadingSpinner className="text-primary-foreground" /> : <Save />}
+            {saveMutation.isPending ? <SnLoadingSpinner className="text-primary-foreground" /> : <Save />}
             Save
           </Button>
         )}
       </div>
-      <GeneralConfirm msg={confirm} continueCb={processDelete} cancelCb={() => setConfirm('')} />
+      <SnGeneralConfirm msg={confirm} continueCb={processDelete} cancelCb={() => setConfirm('')} />
     </div>
   );
 }

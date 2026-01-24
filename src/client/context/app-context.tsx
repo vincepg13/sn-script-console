@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { createContext, useContext, useMemo, useState, useCallback, useEffect, ReactNode } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAbortableController } from '@/hooks/useAbortableController';
+import { useAbortableController } from 'sn-shadcn-kit/hooks';
 import { changePackage, refreshApplication } from '@/lib/api';
 import { errorHandler } from '@/lib/utils';
 import { AppConfig, Preferences } from '@/types/app';

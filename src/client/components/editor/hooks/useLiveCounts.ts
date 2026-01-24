@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useWidget } from '@/context/widget-context';
 import { getDependencyCounts } from '@/lib/api';
 import { useRecordWatch } from 'sn-shadcn-kit/amb';
-import { useDebounceCb } from '@/hooks/useDebounceCb';
+import { useDebouncedFn } from 'sn-shadcn-kit/hooks';
 
 export function useLiveCounts(widgetId: string) {
   const query = 'sp_widget=' + widgetId;
@@ -21,9 +21,9 @@ export function useLiveCounts(widgetId: string) {
     }
   }, [widgetId, patchDependencyCounts]);
 
-  const debounced = useDebounceCb(refreshCounts, 400);
+  const debounced = useDebouncedFn(refreshCounts, 400);
   const onRecordEvent = useCallback(() => {
-    debounced.tick();
+    debounced();
   }, [debounced]);
 
   useRecordWatch('m2m_sp_widget_dependency', query, onRecordEvent);
@@ -31,5 +31,5 @@ export function useLiveCounts(widgetId: string) {
   useRecordWatch('sp_ng_template', query, onRecordEvent);
 
   useEffect(() => () => debounced.cancel(), [debounced]);
-  return { refreshCounts, scheduleRefresh: debounced.tick };
+  return { refreshCounts, scheduleRefresh: debounced };
 }

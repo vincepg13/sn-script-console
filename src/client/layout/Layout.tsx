@@ -13,7 +13,7 @@ import { useAppConfig } from '@/context/app-context';
 import { setPreference } from '@/lib/api';
 import { sidebarPrefKey } from '@/lib/config';
 import { useState, useEffect, useEffectEvent, startTransition, useMemo } from 'react';
-import { SimpleTooltip } from '@/components/generic/SimpleTooltip';
+import { SnSimpleTooltip } from 'sn-shadcn-kit/ui';
 
 export default function Layout() {
   const { width } = useTheme();
@@ -79,9 +79,9 @@ export default function Layout() {
           <div className="shrink-0 max-w-[100vw]">
             <div className="flex justify-between xl:grid xl:grid-cols-[1fr_2fr_1fr] px-4 pt-4 items-center w-full gap-1">
               <div className="flex items-center gap-0">
-                <SimpleTooltip content="Sidebar">
+                <SnSimpleTooltip content="Sidebar">
                   <SidebarTrigger />
-                </SimpleTooltip>
+                </SnSimpleTooltip>
                 {!forceFluid && <WidthSwitch />}
                 <ThemeSwitch />
               </div>

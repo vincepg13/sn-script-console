@@ -1,7 +1,7 @@
 import { Braces, RotateCcw, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { LoadingSpinner } from '../generic/LoadingSpinner';
-import { SimpleTooltip } from '../generic/SimpleTooltip';
+import { SnLoadingSpinner } from 'sn-shadcn-kit/ui';
+import { SnSimpleTooltip } from 'sn-shadcn-kit/ui';
 import { CardFooter } from '../ui/card';
 
 type CardFooterProps = {
@@ -16,16 +16,16 @@ export function SnCardFooter({ formId, isDefault, isSaving, onReset, onOpenJson 
   return (
     <CardFooter className="flex gap-2 mt-auto">
       {!isDefault && (
-        <SimpleTooltip content="Reset to Defaults">
+        <SnSimpleTooltip content="Reset to Defaults">
           <Button type="button" variant="outline" size="icon" onClick={onReset}>
             <RotateCcw />
           </Button>
-        </SimpleTooltip>
+        </SnSimpleTooltip>
       )}
       <Button type="submit" className="flex-1" form={formId} disabled={isSaving}>
         {isSaving ? (
           <span className="flex items-center gap-2">
-            <LoadingSpinner /> Saving...
+            <SnLoadingSpinner /> Saving...
           </span>
         ) : (
           <span className="flex items-center gap-2">
@@ -33,11 +33,11 @@ export function SnCardFooter({ formId, isDefault, isSaving, onReset, onOpenJson 
           </span>
         )}
       </Button>
-      <SimpleTooltip content="Edit Raw JSON">
+      <SnSimpleTooltip content="Edit Raw JSON">
         <Button type="button" variant="outline" size="icon" onClick={onOpenJson}>
           <Braces />
         </Button>
-      </SimpleTooltip>
+      </SnSimpleTooltip>
     </CardFooter>
   );
 }

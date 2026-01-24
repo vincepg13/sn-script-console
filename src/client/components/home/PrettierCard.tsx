@@ -9,11 +9,11 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { ExternalLink } from 'lucide-react';
 import { useAppData } from '@/context/app-context';
-import { SimpleTooltip } from '../generic/SimpleTooltip';
+import { SnSimpleTooltip } from 'sn-shadcn-kit/ui';
 import { useMutation } from '@tanstack/react-query';
 import { objectEquals } from '@observ33r/object-equals';
-import { GeneralConfirm } from '../generic/GeneralConfirm';
-import { JsonDialog } from './JsonDialog';
+import { SnGeneralConfirm } from 'sn-shadcn-kit/ui';
+import { JsonDialog } from '../generic/JsonDialog';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DefaultPrettierOptions } from '@/types/defaults';
 import { ObjectWrap, PrettierConfig, TrailingComma } from '@/types/script';
@@ -81,13 +81,13 @@ export function PrettierCard({ resync }: { resync: () => void }) {
         <CardTitle>Prettier Configuration</CardTitle>
         <CardDescription>Configure your Prettier settings below</CardDescription>
         <CardAction>
-          <SimpleTooltip content="View Prettier Documentation">
+          <SnSimpleTooltip content="View Prettier Documentation">
             <Button variant="ghost" size="icon" asChild>
               <Link to="https://prettier.io/docs/en/options.html" target="_blank">
                 <ExternalLink />
               </Link>
             </Button>
-          </SimpleTooltip>
+          </SnSimpleTooltip>
         </CardAction>
       </CardHeader>
       <CardContent>
@@ -169,12 +169,12 @@ export function PrettierCard({ resync }: { resync: () => void }) {
         onReset={openDefaultDialog}
         onOpenJson={() => setJsonOpen(true)}
       />
-      <GeneralConfirm
+      <SnGeneralConfirm
         title="Reset Prettier to Defaults"
         msg={defaultMsg}
         continueCb={setDefaultPrettier}
         cancelCb={() => setDefaultMsg('')}
-      ></GeneralConfirm>
+      ></SnGeneralConfirm>
       <JsonDialog
         open={jsonOpen}
         setOpen={setJsonOpen}

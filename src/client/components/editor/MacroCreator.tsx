@@ -8,7 +8,7 @@ import { Ban, SquareStack } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { useEffect, useRef, useState } from 'react';
 import { DialogHeader, DialogFooter } from '../ui/dialog';
-import { LoadingSpinner } from '../generic/LoadingSpinner';
+import { SnLoadingSpinner } from 'sn-shadcn-kit/ui';
 import { SnRecordPickerItem, SnRecordPicker } from 'sn-shadcn-kit/standalone';
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose } from '@/components/ui/dialog';
 import { useMutation } from '@tanstack/react-query';
@@ -112,7 +112,7 @@ export function MacroCreator({ open, setOpen }: MacroCreatorProps) {
               </Button>
             </DialogClose>
             <Button type="submit" className="flex-1" form="macro-form" disabled={createMutation.isPending}>
-              {createMutation.isPending ? <LoadingSpinner /> : <SquareStack className="h-5 w-5" />}
+              {createMutation.isPending ? <SnLoadingSpinner /> : <SquareStack className="h-5 w-5" />}
               Create macro
             </Button>
           </DialogFooter>

@@ -26,6 +26,7 @@ export function JsonDialog({ open, setOpen, json, setJson, onSave, title, descri
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 's') return;
     event.preventDefault();
+    event.stopPropagation();
 
     saveButtonRef.current?.click();
   };

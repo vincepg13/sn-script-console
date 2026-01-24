@@ -21,7 +21,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { LoadingSpinner } from '../generic/LoadingSpinner';
+import { SnLoadingSpinner } from 'sn-shadcn-kit/ui';
 
 export function NewWidgetModal({ button, tooltip }: { button?: React.ReactNode; tooltip?: string }) {
   const navigate = useNavigate();
@@ -111,7 +111,7 @@ export function NewWidgetModal({ button, tooltip }: { button?: React.ReactNode; 
             <Button type="submit" className="flex-1">
               {createMutation.isPending ? (
                 <>
-                  <LoadingSpinner /> Creating...
+                  <SnLoadingSpinner /> Creating...
                 </>
               ) : (
                 <>

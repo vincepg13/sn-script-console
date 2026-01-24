@@ -7,7 +7,7 @@ import { AppScope, AppUpdateSet, PickerMenuItem } from '@/types/app';
 import { useQueryClient } from '@tanstack/react-query';
 import { setApplication, setUpdateSet } from '@/lib/api';
 import { AppWindow, FolderCog, Settings2 } from 'lucide-react';
-import { SimpleTooltip } from '@/components/generic/SimpleTooltip';
+import { SnSimpleTooltip } from 'sn-shadcn-kit/ui';
 import { DropdownMenuShortcut } from '@/components/ui/dropdown-menu';
 import { SnRecordPickerItem, SnRecordPicker } from 'sn-shadcn-kit/standalone';
 import { applicationOptions, globalScope, updateSetOptions } from '@/lib/config';
@@ -166,13 +166,13 @@ function UpdateSetPicker({ initialSet, onChange, scope }: UpdateSetPickerProps) 
 function PickerActions({ title, icon, items }: { title: string; icon: ReactNode; items: PickerMenuItem[] }) {
   return (
     <DropdownMenu>
-      <SimpleTooltip content={title}>
+      <SnSimpleTooltip content={title}>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="icon" className="rounded-none rounded-l-md border-r-0">
             {icon}
           </Button>
         </DropdownMenuTrigger>
-      </SimpleTooltip>
+      </SnSimpleTooltip>
       <DropdownMenuContent className="w-56" align="start" onCloseAutoFocus={e => e.preventDefault()}>
         <DropdownMenuLabel>{title}</DropdownMenuLabel>
         <DropdownMenuGroup>

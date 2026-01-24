@@ -5,7 +5,7 @@ import { errorHandler } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { useAppData } from '@/context/app-context';
 import { CmThemeValue } from 'sn-shadcn-kit/script';
-import { useDebouncedFn } from '@/hooks/useDebounceFn';
+import { useDebouncedFn } from 'sn-shadcn-kit/hooks';
 import { useEffect, useState, startTransition, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useMutation } from '@tanstack/react-query';

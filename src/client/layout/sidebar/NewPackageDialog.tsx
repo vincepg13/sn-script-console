@@ -10,8 +10,8 @@ import { ScriptPackages } from '@/types/package';
 import { useAppData } from '@/context/app-context';
 import { createPackage, patchRecord } from '@/lib/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCancelableFn } from '@/hooks/useAbortableController';
-import { LoadingSpinner } from '@/components/generic/LoadingSpinner';
+import { useCancelableFn } from 'sn-shadcn-kit/hooks';
+import { SnLoadingSpinner } from 'sn-shadcn-kit/ui';
 import {
   Dialog,
   DialogContent,
@@ -124,7 +124,7 @@ export function NewPackageDialog({
           <Button type="submit" form="new-package-form" className="w-full" disabled={packageMutation.isPending}>
             {packageMutation.isPending ? (
               <>
-                <LoadingSpinner /> {isCreate ? 'Creating Package...' : 'Renaming Package...'}
+                <SnLoadingSpinner /> {isCreate ? 'Creating Package...' : 'Renaming Package...'}
               </>
             ) : (
               <>

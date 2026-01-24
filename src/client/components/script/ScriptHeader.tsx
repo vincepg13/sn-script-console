@@ -7,10 +7,10 @@ import { useCallback, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { ToolbarButtons } from './ToolbarButtons';
 import { useScript } from '@/context/script-context';
-import { SimpleTooltip } from '../generic/SimpleTooltip';
-import { useSaveShortcut } from '@/hooks/useSaveShortcut';
+import { SnSimpleTooltip } from 'sn-shadcn-kit/ui';
+import { useSaveShortcut } from 'sn-shadcn-kit/hooks';
 import { RecordVersions } from '../generic/RecordVersions';
-import { LoadingSpinner } from '../generic/LoadingSpinner';
+import { SnLoadingSpinner } from 'sn-shadcn-kit/ui';
 import { History, Save } from 'lucide-react';
 import { ScriptPickers } from './ScriptPickers';
 import { useAppConfig } from '@/context/app-context';
@@ -56,15 +56,15 @@ export function ScriptHeader() {
       <ScriptPickers table={table} guid={guid} display={display} />
       <ToolbarButtons canWrite={canWrite} editorRef={editorRef} />
       <Separator orientation="vertical" className="h-9!" />
-      <SimpleTooltip content="View versions">
+      <SnSimpleTooltip content="View versions">
         <Button variant="outline" size="icon" onClick={() => setVersioning(true)}>
           <History />
         </Button>
-      </SimpleTooltip>
+      </SnSimpleTooltip>
       <OpenInInstance table={table} guid={guid} />
       {canWrite && (
         <Button onClick={onSave}>
-          {saveMutation.isPending ? <LoadingSpinner className="text-primary-foreground" /> : <Save />} Save
+          {saveMutation.isPending ? <SnLoadingSpinner className="text-primary-foreground" /> : <Save />} Save
         </Button>
       )}
       <RecordVersions

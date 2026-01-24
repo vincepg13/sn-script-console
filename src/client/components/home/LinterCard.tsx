@@ -1,6 +1,6 @@
 import { toast } from 'sonner';
 import { Link } from 'react-router';
-import { JsonDialog } from './JsonDialog';
+import { JsonDialog } from '../generic/JsonDialog';
 import { setPreference } from '@/lib/api';
 import { errorHandler } from '@/lib/utils';
 import { LintLevel } from '@/types/script';
@@ -12,9 +12,9 @@ import { RuleEntry } from 'sn-shadcn-kit/script';
 import { useAppData } from '@/context/app-context';
 import { useMutation } from '@tanstack/react-query';
 import { DefaultESLintOptions } from '@/types/defaults';
-import { SimpleTooltip } from '../generic/SimpleTooltip';
+import { SnSimpleTooltip } from 'sn-shadcn-kit/ui';
 import { objectEquals } from '@observ33r/object-equals';
-import { GeneralConfirm } from '../generic/GeneralConfirm';
+import { SnGeneralConfirm } from 'sn-shadcn-kit/ui';
 import { defaultLintLevels, eslintPrefKey } from '@/lib/config';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -92,13 +92,13 @@ export function LinterCard({ resync }: { resync: () => void }) {
         <CardTitle>ES Lint Configuration</CardTitle>
         <CardDescription>Configure your ESLint settings below</CardDescription>
         <CardAction>
-          <SimpleTooltip content="View ESLint Documentation">
+          <SnSimpleTooltip content="View ESLint Documentation">
             <Button variant="ghost" size="icon" asChild>
               <Link to="https://eslint.org/docs/latest/rules/" target="_blank">
                 <ExternalLink />
               </Link>
             </Button>
-          </SimpleTooltip>
+          </SnSimpleTooltip>
         </CardAction>
       </CardHeader>
       <CardContent>
@@ -154,12 +154,12 @@ export function LinterCard({ resync }: { resync: () => void }) {
         onReset={openDefaultDialog}
         onOpenJson={() => setJsonOpen(true)}
       />
-      <GeneralConfirm
+      <SnGeneralConfirm
         title="Reset ES Lint to Defaults"
         msg={defaultMsg}
         continueCb={setDefaultLinter}
         cancelCb={() => setDefaultMsg('')}
-      ></GeneralConfirm>
+      ></SnGeneralConfirm>
       <JsonDialog
         open={jsonOpen}
         setOpen={setJsonOpen}

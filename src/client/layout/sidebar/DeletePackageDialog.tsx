@@ -3,8 +3,8 @@ import { errorHandler } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useMutation } from '@tanstack/react-query';
 import { deleteRecord, setPreference } from '@/lib/api';
-import { LoadingSpinner } from '@/components/generic/LoadingSpinner';
-import { useAbortableController } from '@/hooks/useAbortableController';
+import { SnLoadingSpinner } from 'sn-shadcn-kit/ui';
+import { useAbortableController } from 'sn-shadcn-kit/hooks';
 import {
   AlertDialog,
   AlertDialogHeader,
@@ -54,7 +54,7 @@ export function DeletePackageDialog({ pkgName, pkgId, open, setOpen, onDelete }:
           <Button variant="destructive" onClick={() => deleteMutation.mutate()}>
             {deleteMutation.isPending ? (
               <>
-                <LoadingSpinner className="text-white" /> Deleting Package...
+                <SnLoadingSpinner className="text-white" /> Deleting Package...
               </>
             ) : (
               <>

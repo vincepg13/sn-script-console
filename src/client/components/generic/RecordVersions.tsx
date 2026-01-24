@@ -6,7 +6,7 @@ import { errorHandler } from '@/lib/utils';
 import { ListRecord } from '@/types/list';
 import { getRecords, revertVersion } from '@/lib/api';
 import { instanceURI, versionFields } from '@/lib/config';
-import { LoadingSpinner } from './LoadingSpinner';
+import { SnLoadingSpinner } from 'sn-shadcn-kit/ui';
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
@@ -102,7 +102,7 @@ export function RecordVersions({
           <div>
             {loading ? (
               <div className="p-4 text-muted-foreground flex gap-2 items-center">
-                <LoadingSpinner />
+                <SnLoadingSpinner />
                 Loading version data...
               </div>
             ) : (
@@ -152,7 +152,7 @@ export function RecordVersions({
                                   variant="outline"
                                   onClick={() => revertMutation.mutate(v.sys_id.value)}
                                 >
-                                  {reverting === v.sys_id.value ? <LoadingSpinner /> : <History />}
+                                  {reverting === v.sys_id.value ? <SnLoadingSpinner /> : <History />}
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>Revert to this version</TooltipContent>

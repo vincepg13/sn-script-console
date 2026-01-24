@@ -7,12 +7,13 @@ import { useWidget } from '@/context/widget-context';
 import { useQueryClient } from '@tanstack/react-query';
 import { useWidgetWatcher } from './hooks/useWidgetWatcher';
 import { useUnloadableBlur } from './hooks/useUnloadableBlur';
-import { useSlashPrevention } from '@/hooks/useSlashPrevention';
+import { useSlashPrevention } from 'sn-shadcn-kit/hooks';
 import { ExternalChangesDialog } from '../generic/ExternalChangesDialog';
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { Braces, CircleX, CodeSquare, SquareChartGantt } from 'lucide-react';
 import { setEsVersion, SnScriptEditor, SnScriptToolbar } from 'sn-shadcn-kit/script';
 import { angularTernConfig, WidgetFields, SnScriptFieldType, WidgetFieldVals } from '@/types/widget';
+import { HtmlRulesDialog } from './HtmlRulesDialog';
 
 export const editorIconMap = {
   template: <SquareChartGantt />,
@@ -34,6 +35,7 @@ export function WidgetEditor() {
   const qc = useQueryClient();
   const { widget, hasLocalEdits, getScriptRef, setScriptRef, discardLocalEdits, setFieldValue, toggleFieldVisibility } =
     useWidget();
+
 
   useUnloadableBlur();
   const {
@@ -108,6 +110,7 @@ export function WidgetEditor() {
                   parentClasses="flex-1 min-h-0 flex flex-col gap-1.5"
                   cmContainerClasses="flex-1 min-h-0 overflow-auto"
                   onReady={ref => setScriptRef(target.name, ref)}
+                  htmlLintRules={widget.htmlRules}
                   bounceTime={200}
                   onBlur={(v: string) => setFieldValue(target.name, v)}
                   customToolbar={
@@ -117,6 +120,9 @@ export function WidgetEditor() {
                         <p className="text-lg font-semibold">{target.label}</p>
                       </div>
                       <div className="flex items-center gap-1">
+                        {target.type === 'html_template' && (
+                          <HtmlRulesDialog rules={widget.htmlRules}></HtmlRulesDialog>
+                        )}
                         <SnScriptToolbar readonly={locked} editorRef={getScriptRef(target.name)} />
                         {arr.length > 1 && (
                           <Button variant="ghost" size="icon" onClick={() => toggleFieldVisibility(target.name)}>

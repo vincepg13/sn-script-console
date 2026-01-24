@@ -4,7 +4,7 @@ import { NewPackageDialog } from './NewPackageDialog';
 import { DeletePackageDialog } from './DeletePackageDialog';
 import { useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { BadgePlus, Pencil, Settings2, Trash } from 'lucide-react';
-import { SimpleTooltip } from '@/components/generic/SimpleTooltip';
+import { SnSimpleTooltip } from 'sn-shadcn-kit/ui';
 import { SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
@@ -88,13 +88,13 @@ export function PackageManager({ onChange, resync }: { onChange: (pkgId: string)
             </SelectContent>
           </Select>
           <DropdownMenu>
-            <SimpleTooltip content="Package Options">
+            <SnSimpleTooltip content="Package Options">
               <DropdownMenuTrigger asChild>
                 <Button size="icon">
                   <Settings2 />
                 </Button>
               </DropdownMenuTrigger>
-            </SimpleTooltip>
+            </SnSimpleTooltip>
             <DropdownMenuContent className="w-56" align="start" onCloseAutoFocus={e => e.preventDefault()}>
               <DropdownMenuLabel>Package Options</DropdownMenuLabel>
               <DropdownMenuGroup>

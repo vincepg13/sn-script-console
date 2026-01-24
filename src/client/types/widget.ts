@@ -70,6 +70,7 @@ export const WidgetSchema = z.object({
   esVersion: z.custom<ESVersion>(),
   fields: WidgetFields,
   toggleButtons: z.array(ToggleButtonSchema),
+  htmlRules: z.record(z.string(), z.any()),
   scopeChange: ScopeUpdateSchema.optional().nullable(),
   packageValue: PackageValueSchema.optional().nullable(),
   security: z.object({

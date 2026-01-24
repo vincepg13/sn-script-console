@@ -8,7 +8,7 @@ import { postPolicyActions } from '@/lib/api';
 import { usePolicy } from '@/context/policy-context';
 import { objectEquals } from '@observ33r/object-equals';
 import { PolicyRow, PolicyRowHeader } from './PolicyActionRow';
-import { useCancelableFn } from '@/hooks/useAbortableController';
+import { useCancelableFn } from 'sn-shadcn-kit/hooks';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { BadgePlus, MessageCircleWarning, Save } from 'lucide-react';
 import { ActionField, FieldsByTable, PolicyAction, PolicyActionData, PolicyActionItem } from '@/types/policy';

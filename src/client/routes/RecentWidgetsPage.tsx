@@ -5,7 +5,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { WidgetPicker } from '@/components/editor/WidgetPicker.tsx';
 import { NewWidgetModal } from '@/components/editor/NewWidgetModal.tsx';
 import { GeneralLoader } from '@/components/generic/GeneralLoader.tsx';
-import { LoadingSpinner } from '@/components/generic/LoadingSpinner.tsx';
+import { SnLoadingSpinner } from 'sn-shadcn-kit/ui';
 
 //Tanstack Query fetcher for recently updated widgets
 export const recentWidgetsQuery = () => ({
@@ -29,7 +29,7 @@ export default function RecentWidgetsPage() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
-        {isFetching && <LoadingSpinner />}
+        {isFetching && <SnLoadingSpinner />}
         <div className="flex-1">
           <WidgetPicker />
         </div>

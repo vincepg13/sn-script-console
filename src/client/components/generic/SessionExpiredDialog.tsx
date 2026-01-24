@@ -38,6 +38,8 @@ export function SessionExpiredDialog({ open, onRetry }: SessionExpiredDialogProp
 
       const axi = getAxiosInstance();
       axi.defaults.headers['X-UserToken'] = token;
+      window.g_ck = token;
+
       onRetry();
     } catch (e) {
       errorHandler(e, 'Unable to refresh session');
@@ -52,7 +54,7 @@ export function SessionExpiredDialog({ open, onRetry }: SessionExpiredDialogProp
         showCloseButton={false}
         onInteractOutside={event => event.preventDefault()}
         onEscapeKeyDown={event => event.preventDefault()}
-        className="sm:max-w-[520px] text-accent-foreground"
+        className="max-w-md text-accent-foreground"
       >
         <DialogHeader>
           <DialogTitle>Session expired</DialogTitle>

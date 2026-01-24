@@ -8,8 +8,7 @@ import { errorHandler } from '@/lib/utils';
 import { useMutation } from '@tanstack/react-query';
 import { useProperty } from '@/context/property-context';
 import { MessageCircleWarning, Save } from 'lucide-react';
-import { useSaveShortcut } from '@/hooks/useSaveShortcut';
-import { useCancelableFn } from '@/hooks/useAbortableController';
+import { useCancelableFn, useSaveShortcut } from 'sn-shadcn-kit/hooks';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
 type SaveData = {
