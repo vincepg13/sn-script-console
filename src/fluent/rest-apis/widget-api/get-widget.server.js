@@ -33,7 +33,7 @@
       { label: 'CSS', field: 'css', parser: 'scss', visible: toggled.includes('css') },
       { label: 'Client', field: 'client_script', parser: 'babel', visible: toggled.includes('client_script') },
       { label: 'Server', field: 'script', parser: 'babel', visible: toggled.includes('script') },
-      { label: 'Link', field: 'link', visible: toggled.includes('link') },
+      { label: 'Link', field: 'link', visible: toggled.includes('link') }
     ];
 
     data.toggleButtons.forEach(function (b) {
@@ -42,11 +42,22 @@
 
     data.security = {
       canWrite: grWidget.canWrite(),
-      canDelete: grWidget.canDelete(),
+      canDelete: grWidget.canDelete()
     };
 
-    ((data.esVersion = util.sgu.getEsMode(grWidget, 'sp_widget', grWidget.getUniqueValue())),
-      (data.dependencyCounts = new ScriptConsoleUtils().getDependencyCounts(data.guid)));
+    data.htmlRules = { 'void-style': 'off' };
+    const userHtmlRules = gUser.getPreference('script_console.html_rules') || '{}';
+    
+    try {
+      const userRulesJson = JSON.parse(userHtmlRules);
+      data.htmlRules = { ...data.htmlRules, ...userRulesJson };
+    } catch (e) {
+      gs.info('Script Console: Invalid user html rules:\n' + userHtmlRules);
+    }
+
+    data.dependencyCounts = util.getDependencyCounts(data.guid);
+    data.esVersion = util.sgu.getEsMode(grWidget, 'sp_widget', grWidget.getUniqueValue());
+
     return response.setBody({ data });
   }
 

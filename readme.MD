@@ -28,7 +28,7 @@ You can install Script Console in two ways:
 
 If you're planning to use the application as-is, this is the simplest and recommended approach.
 
-1. Download the latest [update set](/public/Script%20Console%20V1.2.0.xml) from the public folder of this repository or from [ServiceNow Share](https://developer.servicenow.com/connect.do#!/share/contents/1722570_script_console?t=PRODUCT_DETAILS).
+1. Download the latest [update set](/public/Script%20Console%20V1.3.0.xml) from the public folder of this repository or from [ServiceNow Share](https://developer.servicenow.com/connect.do#!/share/contents/1722570_script_console?t=PRODUCT_DETAILS).
 2. Import and commit it to your ServiceNow instance via the **Update Sets** module.
 
 That’s it! The update set installs one file in the global scope - a script include named `ScriptConsoleG` - and the scoped application **Script Console**.
@@ -136,6 +136,8 @@ The displayed tables are configurable (see [Configuration](#configuration)).
    - Auto-add opened records to your active package
    - Open your last edited widget by default in the Widget Editor
 
+For both Prettier and EsLint you can take full control over their rules instead of using just the ones provided by clicking the JSON Braces icon next to the save button. This will allow you to use your own custom JSON. If you make use of additional options which are not part of the default provided by the Script Console application, they will not show up on the configuration cards but they will be applied.
+
 ---
 
 ### `/script`
@@ -194,6 +196,7 @@ The rebuilt editor retains the familiar horizontal layout but introduces several
   A new **Dependencies** button displays the total count. The button opens a dropdown with an item per dependency type. Clicking any dependency type opens a sidebar to view, add, or remove dependencies.
 - Adjacent to the dependencies button is another dropdown toggle (down arrow icon), it includes useful actions like: _Export to XML_, _Clone_, _Open in Platform_, _Show Versions_, and _Create Macro_.
 - Toolbar buttons on the right let you create, delete, and save widgets (**Ctrl+S** supported).
+- You can modify the HTML lint rules by pressing the JSON braces icon in the header of the HTML Template script field.
 
 Read-only widgets (e.g., those in different scopes) automatically hide restricted actions.
 
