@@ -8,7 +8,7 @@ import { errorHandler } from '@/lib/utils';
 import { Option, Options } from '@/types/widget';
 import { Button } from '@/components/ui/button';
 import { Settings2, Trash2 } from 'lucide-react';
-import { LoadingSpinner } from '../generic/LoadingSpinner';
+import { SnLoadingSpinner } from 'sn-shadcn-kit/ui';
 import { optionSections, optionTypes } from '@/lib/config';
 import { SnRecordPicker, SnRecordPickerItem } from 'sn-shadcn-kit/standalone';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
@@ -131,7 +131,7 @@ export function WidgetOptions({ widget, options, editable }: { widget: string; o
               <Button form="optionsForm" type="submit" disabled={saving}>
                 {saving ? (
                   <span className="flex gap-2 items-center">
-                    <LoadingSpinner className="h-4 w-4 text-primary-foreground" /> Saving...
+                    <SnLoadingSpinner className="h-4 w-4 text-primary-foreground" /> Saving...
                   </span>
                 ) : (
                   'Save changes'

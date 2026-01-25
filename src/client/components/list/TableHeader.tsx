@@ -1,28 +1,22 @@
-import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { MenuItem } from '@/types/app';
 import { errorHandler } from '@/lib/utils';
 import { setPersonalList } from '@/lib/api';
+import { useCallback, useMemo } from 'react';
 import { useList } from '@/context/list-context';
 import { useAppData } from '@/context/app-context';
 import { Link, useSearchParams } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { SimpleTooltip } from '../generic/SimpleTooltip';
-import { LoadingSpinner } from '../generic/LoadingSpinner';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { SnSimpleTooltip } from 'sn-shadcn-kit/ui';
 import { fallbackMenuItems, instanceURI } from '@/lib/config';
-import { useCancelableFn } from '@/hooks/useAbortableController';
-import { useDebouncedCallback } from '../editor/hooks/useDebouncedCallback';
-import { CircleX, ListFilter, Settings2, SquareArrowOutUpRight } from 'lucide-react';
-import { SnConditionBuilder, SnListItem, SnPersonaliseList } from 'sn-shadcn-kit/table';
+import { useCancelableFn } from 'sn-shadcn-kit/hooks';
+import { Settings2, SquareArrowOutUpRight } from 'lucide-react';
+import { SnListItem, SnPersonaliseList, SnTableHeader } from 'sn-shadcn-kit/table';
+
 
 export function TableHeader() {
   const qc = useQueryClient();
-  
   const [, setSp] = useSearchParams();
-  const [showFilter, setShowFilter] = useState(false);
-  const tableSearchRef = useRef<HTMLInputElement>(null);
-  const [searchClearable, setSearchClearable] = useState(false);
 
   const { table, listData, uuid, query, isFetching } = useList();
   const { config, listMechanic } = listData;
@@ -42,10 +36,7 @@ export function TableHeader() {
   }, [table, tableLabel, appConfig.menu]);
 
   //Completely reset the query params and search input
-  const resetQuery = () => {
-    setShowFilter(false);
-    if (tableSearchRef.current) tableSearchRef.current.value = '';
-
+  const resetQuery = useCallback(() => {
     setSp(
       prev => {
         const next = new URLSearchParams(prev);
@@ -55,102 +46,65 @@ export function TableHeader() {
       },
       { replace: true }
     );
-  };
+  }, [setSp]);
 
-  // Query on debounced search from input
-  const handleChange = useDebouncedCallback(() => {
-    const value = tableSearchRef.current?.value;
-    if (!value) return resetQuery();
-    const query = value.startsWith('*') ? `${displayField}LIKE${value.slice(1)}` : `${displayField}STARTSWITH${value}`;
-    setSp(prev => ({ ...prev, query, page: 1 }), { replace: true });
-  }, 300);
-
-  // Handle query updates from condition builder
-  const handleQueryChange = (builderQuery: string) => {
-    if (!builderQuery) return resetQuery();
-    if (query === builderQuery) return;
-
-    setShowFilter(false);
-    setSp(prev => ({ ...prev, query: builderQuery, page: 1 }), { replace: true });
-  };
-
-  // Sync clearable with query
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSearchClearable(!!tableSearchRef.current?.value);
-  }, [tableSearchRef, query]);
+  const updateQuery = useCallback(
+    (nextQuery: string) => {
+      setSp(prev => ({ ...prev, query: nextQuery, page: 1 }), { replace: true });
+    },
+    [setSp]
+  );
 
   const saveList = async (items?: SnListItem[]) => {
     try {
       await setPersonal.run(table, items);
-      qc.invalidateQueries({queryKey: ['listData', table]});
+      qc.invalidateQueries({ queryKey: ['listData', table] });
     } catch (error) {
       errorHandler(error, 'Failed to save personalised list');
     }
   };
 
-  const setPersonal = useCancelableFn((signal, table: string, items?: SnListItem[]) => {
+  const setPersonal = useCancelableFn((signal, targetTable: string, items?: SnListItem[]) => {
     const listItems = items?.map(i => i.value);
-    return setPersonalList(table, listItems, signal);
+    return setPersonalList(targetTable, listItems, signal);
   });
 
+  const actions = [
+    <SnSimpleTooltip key="personalise-list" content="Personalise List">
+      <div>
+        <SnPersonaliseList key={table} {...listMechanic} onSave={saveList}>
+          <Button variant="outline" size="icon">
+            <Settings2 />
+          </Button>
+        </SnPersonaliseList>
+      </div>
+    </SnSimpleTooltip>,
+    <SnSimpleTooltip key="open-in-instance" content="Open list in instance">
+      <Button variant="outline" size="icon" asChild>
+        <Link
+          to={`${instanceURI}/${table}_list.do?${query ? `sysparm_query=${encodeURIComponent(query)}&` : ''}`}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center"
+        >
+          <SquareArrowOutUpRight />
+        </Link>
+      </Button>
+    </SnSimpleTooltip>,
+  ];
+
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-end justify-between w-full flex-wrap">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight flex gap-1 items-center">{tableLabel}</h2>
-          <p className="text-muted-foreground">{tagline}</p>
-        </div>
-        <div className="flex items-center gap-2 w-full mt-2 lg:w-auto lg:mt-0">
-          {isFetching && <LoadingSpinner className="h-6 w-6" />}
-          <div className="relative w-full">
-            <Input
-              type="text"
-              ref={tableSearchRef}
-              onChange={handleChange}
-              placeholder={`Search by ${displayField}...`}
-              className="pr-5"
-            />
-            {searchClearable && (
-              <CircleX
-                className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground cursor-pointer hover:text-destructive"
-                onClick={resetQuery}
-              />
-            )}
-          </div>
-          <SimpleTooltip content="Personalise List">
-            <div>
-              <SnPersonaliseList key={table} {...listMechanic} onSave={saveList}>
-                <Button variant="outline" size="icon">
-                  <Settings2 />
-                </Button>
-              </SnPersonaliseList>
-            </div>
-          </SimpleTooltip>
-          <SimpleTooltip content={showFilter ? 'Close Advanced Filter' : 'Open Advanced Filter'}>
-            <Button variant="outline" size="icon" onClick={() => setShowFilter(!showFilter)}>
-              <span className={`transition-transform duration-300 ease-in-out ${showFilter ? 'rotate-180' : ''}`}>
-                <ListFilter />
-              </span>
-            </Button>
-          </SimpleTooltip>
-          <SimpleTooltip content="Open list in instance">
-            <Button variant="outline" size="icon" asChild>
-              <Link
-                to={`${instanceURI}/${table}_list.do?${query ? `sysparm_query=${encodeURIComponent(query)}&` : ''}`}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center"
-              >
-                <SquareArrowOutUpRight />
-              </Link>
-            </Button>
-          </SimpleTooltip>
-        </div>
-      </div>
-      <div className={showFilter ? 'block' : 'hidden'}>
-        <SnConditionBuilder key={uuid} table={table} onQueryBuilt={handleQueryChange} encodedQuery={query || ''} />
-      </div>
-    </div>
+    <SnTableHeader
+      title={tableLabel}
+      tagline={tagline}
+      table={table}
+      displayField={displayField}
+      query={query ?? ''}
+      uuid={uuid}
+      isFetching={isFetching}
+      actions={actions}
+      onQueryChange={updateQuery}
+      onResetQuery={resetQuery}
+    />
   );
 }

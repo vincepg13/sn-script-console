@@ -6,22 +6,22 @@ import { WidgetPicker } from './WidgetPicker';
 import { WidgetOptions } from './WidgetOptions';
 import { WidgetDropdown } from './WidgetDropdown';
 import { NewWidgetModal } from './NewWidgetModal';
+import { useAppData } from '@/context/app-context';
+import { useMutation } from '@tanstack/react-query';
 import { deleteRecord, saveWidget } from '@/lib/api';
 import { useWidget } from '@/context/widget-context';
+import { useSaveShortcut } from 'sn-shadcn-kit/hooks';
 import { BadgePlus, Save, Trash2 } from 'lucide-react';
 import { ModifyPackage } from '../generic/ModifyPackage';
-import { useSaveShortcut } from '@/hooks/useSaveShortcut';
 import { WidgetDependencies } from './WidgetDependencies';
-import { LoadingSpinner } from '../generic/LoadingSpinner';
-import { GeneralConfirm } from '../generic/GeneralConfirm';
+import { SnLoadingSpinner } from 'sn-shadcn-kit/ui';
+import { SnGeneralConfirm } from 'sn-shadcn-kit/ui';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
-import { useAppData } from '@/context/app-context';
 
 export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => void }) {
   const navigate = useNavigate();
   const [confirm, setConfirm] = useState('');
-  const [saving, setSaving] = useState(false);
 
   const { widget, saveData, isFetching, applySavedChanges, getScriptRef, toggleFieldVisibility } = useWidget();
   const { canWrite, canDelete } = widget.security;
@@ -34,24 +34,21 @@ export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => v
     controllerRef.current = new AbortController();
   };
 
-  const processDelete = useCallback(async () => {
-    resetController();
-
-    try {
-      await deleteRecord('sp_widget', widget.guid, controllerRef.current.signal);
+  const deleteMutation = useMutation({
+    mutationKey: ['widgetDelete', widget.guid],
+    mutationFn: () => deleteRecord('sp_widget', widget.guid, controllerRef.current.signal),
+    onMutate: () => resetController(),
+    onSuccess: () => {
       toast.success('Widget deleted');
       navigate('/widget_editor?recent=true');
-    } catch (e) {
-      errorHandler(e, 'Failed to delete widget');
-    }
-  }, [navigate, widget.guid]);
+    },
+    onError: e => errorHandler(e, 'Failed to delete widget'),
+  });
 
-  const onSave = useCallback(async () => {
-    setSaving(true);
-    setSaveFlag?.(true);
-    resetController();
-
-    try {
+  const saveMutation = useMutation({
+    mutationKey: ['widgetSave', widget.guid],
+    mutationFn: async () => {
+      resetController();
       const localSaveData = { ...saveData };
 
       if (prettierConfig?.formatOnSave) {
@@ -71,20 +68,32 @@ export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => v
       }
 
       const result = await saveWidget(widget.guid, localSaveData, controllerRef.current.signal);
-
+      return { result, localSaveData };
+    },
+    onMutate: () => {
+      setSaveFlag?.(true);
+    },
+    onSuccess: ({ result, localSaveData }) => {
       if (result) {
         toast.success('Widget saved');
         applySavedChanges(localSaveData);
       } else {
         setSaveFlag?.(false);
       }
-    } catch (e) {
+    },
+    onError: e => {
       setSaveFlag?.(false);
       errorHandler(e, 'Failed to save widget');
-    } finally {
-      setSaving(false);
-    }
-  }, [setSaveFlag, saveData, prettierConfig?.formatOnSave, widget.guid, widget.toggleButtons, getScriptRef, applySavedChanges]);
+    },
+  });
+
+  const processDelete = useCallback(() => {
+    deleteMutation.mutate();
+  }, [deleteMutation]);
+
+  const onSave = useCallback(() => {
+    saveMutation.mutate();
+  }, [saveMutation]);
 
   useSaveShortcut({ enabled: canWrite, onTrigger: onSave });
 
@@ -117,7 +126,7 @@ export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => v
         <WidgetDropdown widget={widget} />
       </div>
       <div className="ml-auto flex gap-2 items-center">
-        {isFetching && <LoadingSpinner />}
+        {isFetching && <SnLoadingSpinner />}
         {canDelete && (
           <Tooltip>
             <TooltipTrigger asChild>
@@ -143,13 +152,13 @@ export function WidgetToolbar({ setSaveFlag }: { setSaveFlag?: (s: boolean) => v
           }
         />
         {canWrite && (
-          <Button onClick={onSave} disabled={saving}>
-            {saving ? <LoadingSpinner className="text-primary-foreground" /> : <Save />}
+          <Button onClick={onSave} disabled={saveMutation.isPending}>
+            {saveMutation.isPending ? <SnLoadingSpinner className="text-primary-foreground" /> : <Save />}
             Save
           </Button>
         )}
       </div>
-      <GeneralConfirm msg={confirm} continueCb={processDelete} cancelCb={() => setConfirm('')} />
+      <SnGeneralConfirm msg={confirm} continueCb={processDelete} cancelCb={() => setConfirm('')} />
     </div>
   );
 }

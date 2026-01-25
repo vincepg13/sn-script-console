@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { LucideIcon, ChevronRight, Trash } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { LoadingSpinner } from '@/components/generic/LoadingSpinner';
+import { SnLoadingSpinner } from 'sn-shadcn-kit/ui';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   SidebarGroup,
@@ -109,7 +109,7 @@ const TableRow = memo(function TableRow({
                   onClick={() => onRemove(tableName, s.path)}
                   className="text-muted-foreground hover:bg-red-600/10 hover:text-red-600"
                 >
-                  {inRemoval === s.path ? <LoadingSpinner className="size-4" /> : <Trash className="size-4" />}
+                  {inRemoval === s.path ? <SnLoadingSpinner className="size-4" /> : <Trash className="size-4" />}
                 </Button>
               </SidebarMenuSubItem>
             ))}

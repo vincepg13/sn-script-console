@@ -36,6 +36,7 @@ export const DefaultPrettierOptions: z.infer<typeof PrettierSchema> = {
 export const DefaultESLintOptions: ESLintConfigAny = {
   rules: {
     semi: ['warn', 'always'],
+    'no-const-assign': 'error',
     'no-unused-vars': ['warn', { args: 'after-used' }],
     'no-unreachable': 'error',
     'no-redeclare': 'error',

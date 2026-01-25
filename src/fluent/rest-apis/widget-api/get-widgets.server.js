@@ -4,7 +4,7 @@
   const grWidget = new GlideRecordSecure('sp_widget');
   grWidget.addNotNullQuery('name');
   grWidget.orderByDesc('sys_updated_on');
-  grWidget.setLimit(16);
+  grWidget.setLimit(24);
   grWidget.query();
 
   const widgets = [];
@@ -16,11 +16,11 @@
       id: grWidget.getValue('id'),
       guid: grWidget.getUniqueValue(),
       scope: grWidget.getDisplayValue('sys_scope'),
-      updater: utils.sgu.getLastUpdated(grWidget),
+      updater: utils.sgu.getLastUpdated(grWidget)
     });
   }
 
   return response.setBody({
-    widgets,
+    widgets
   });
 })(request, response);

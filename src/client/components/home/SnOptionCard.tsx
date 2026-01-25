@@ -5,9 +5,10 @@ import { errorHandler } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { useAppData } from '@/context/app-context';
 import { CmThemeValue } from 'sn-shadcn-kit/script';
-import { useDebouncedFn } from '@/hooks/useDebounceFn';
+import { useDebouncedFn } from 'sn-shadcn-kit/hooks';
 import { useEffect, useState, startTransition, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useMutation } from '@tanstack/react-query';
 import {
   autoPackageAddKey,
   autoScopeSwitchKey,
@@ -61,18 +62,26 @@ export function SnOptionsCard({ resync }: { resync: () => void }) {
     if (!saving.current) return resync();
   }, 1000);
 
-  const savePref = useDebouncedFn(async (name: string, value: string, onErrorRollback?: () => void) => {
-    try {
+  const savePreferenceMutation = useMutation({
+    mutationKey: ['preferenceSave'],
+    mutationFn: ({ name, value }: { name: string; value: string; onErrorRollback?: () => void }) => setPreference(name, value),
+    onMutate: () => {
       saving.current = true;
-      await setPreference(name, value);
-      // await setPreference(name, value, getSignal());
+    },
+    onSuccess: () => {
       debounceSync();
-    } catch (err) {
-      onErrorRollback?.();
-      errorHandler(err, 'Failed to save preference: ' + name);
-    } finally {
+    },
+    onError: (err, variables: { name: string; value: string; onErrorRollback?: () => void }) => {
+      variables.onErrorRollback?.();
+      errorHandler(err, 'Failed to save preference: ' + variables.name);
+    },
+    onSettled: () => {
       saving.current = false;
-    }
+    },
+  });
+
+  const savePref = useDebouncedFn((name: string, value: string, onErrorRollback?: () => void) => {
+    savePreferenceMutation.mutate({ name, value, onErrorRollback });
   }, 200);
 
   const setThemePref = (value: CmThemeValue) => {

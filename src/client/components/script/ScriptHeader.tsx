@@ -4,19 +4,19 @@ import { globalSave } from '@/lib/api';
 import { errorHandler } from '@/lib/utils';
 import { Separator } from '../ui/separator';
 import { useCallback, useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { ToolbarButtons } from './ToolbarButtons';
 import { useScript } from '@/context/script-context';
-import { SimpleTooltip } from '../generic/SimpleTooltip';
-import { useSaveShortcut } from '@/hooks/useSaveShortcut';
+import { SnSimpleTooltip } from 'sn-shadcn-kit/ui';
+import { useSaveShortcut } from 'sn-shadcn-kit/hooks';
 import { RecordVersions } from '../generic/RecordVersions';
-import { LoadingSpinner } from '../generic/LoadingSpinner';
+import { SnLoadingSpinner } from 'sn-shadcn-kit/ui';
 import { History, Save } from 'lucide-react';
 import { ScriptPickers } from './ScriptPickers';
 import { useAppConfig } from '@/context/app-context';
 import { OpenInInstance } from '../generic/OpenInInstance';
 
 export function ScriptHeader() {
-  const [saving, setSaving] = useState(false);
   const [versioning, setVersioning] = useState(false);
 
   const { editorRef, canWrite, metadata, refetch } = useScript();
@@ -24,17 +24,10 @@ export function ScriptHeader() {
   const { refreshScope, config } = useAppConfig();
   const { prettierConfig } = config;
 
-  const onSave = useCallback(async () => {
-    if (prettierConfig?.formatOnSave) {
-      await editorRef.current?.format?.();
-      await new Promise(resolve => setTimeout(resolve, 200));
-    }
-    const value = editorRef.current!.getRawValue();
-
-    try {
-      setSaving(true);
-      const res = await globalSave(table, guid, { [field]: { name: field, value } });
-
+  const saveMutation = useMutation({
+    mutationKey: ['scriptSave', table, guid, field],
+    mutationFn: (value: string) => globalSave(table, guid, { [field]: { name: field, value } }),
+    onSuccess: res => {
       if (res.isActionAborted === false) {
         toast.success('Script saved');
         refetch();
@@ -42,12 +35,19 @@ export function ScriptHeader() {
         toast.error('Save aborted by server');
         refreshScope();
       }
-    } catch (error) {
-      errorHandler(error, 'not saved');
-    } finally {
-      setSaving(false);
+    },
+    onError: error => errorHandler(error, 'not saved'),
+  });
+
+  const onSave = useCallback(async () => {
+    if (prettierConfig?.formatOnSave) {
+      await editorRef.current?.format?.();
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
-  }, [prettierConfig?.formatOnSave, editorRef, table, guid, field, refetch, refreshScope]);
+
+    const value = editorRef.current!.getRawValue();
+    saveMutation.mutate(value);
+  }, [prettierConfig?.formatOnSave, editorRef, saveMutation]);
 
   useSaveShortcut({ enabled: canWrite, onTrigger: onSave });
 
@@ -56,15 +56,15 @@ export function ScriptHeader() {
       <ScriptPickers table={table} guid={guid} display={display} />
       <ToolbarButtons canWrite={canWrite} editorRef={editorRef} />
       <Separator orientation="vertical" className="h-9!" />
-      <SimpleTooltip content="View versions">
+      <SnSimpleTooltip content="View versions">
         <Button variant="outline" size="icon" onClick={() => setVersioning(true)}>
           <History />
         </Button>
-      </SimpleTooltip>
+      </SnSimpleTooltip>
       <OpenInInstance table={table} guid={guid} />
       {canWrite && (
         <Button onClick={onSave}>
-          {saving ? <LoadingSpinner className="text-primary-foreground" /> : <Save />} Save
+          {saveMutation.isPending ? <SnLoadingSpinner className="text-primary-foreground" /> : <Save />} Save
         </Button>
       )}
       <RecordVersions

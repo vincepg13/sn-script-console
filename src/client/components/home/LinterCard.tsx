@@ -1,35 +1,41 @@
+import { toast } from 'sonner';
 import { Link } from 'react-router';
-import { LintLevel } from '@/types/script';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { ExternalLink, Save } from 'lucide-react';
-import { useAppData } from '@/context/app-context';
-import { SimpleTooltip } from '../generic/SimpleTooltip';
-import { useCallback, useEffect, useState } from 'react';
-import { defaultLintLevels, eslintPrefKey } from '@/lib/config';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { JsonDialog } from '../generic/JsonDialog';
 import { setPreference } from '@/lib/api';
 import { errorHandler } from '@/lib/utils';
-import { LoadingSpinner } from '../generic/LoadingSpinner';
+import { LintLevel } from '@/types/script';
+import { ExternalLink } from 'lucide-react';
+import { SnCardFooter } from './CardFooter';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { RuleEntry } from 'sn-shadcn-kit/script';
-import { toast } from 'sonner';
+import { useAppData } from '@/context/app-context';
+import { useMutation } from '@tanstack/react-query';
+import { DefaultESLintOptions } from '@/types/defaults';
+import { SnSimpleTooltip } from 'sn-shadcn-kit/ui';
+import { objectEquals } from '@observ33r/object-equals';
+import { SnGeneralConfirm } from 'sn-shadcn-kit/ui';
+import { defaultLintLevels, eslintPrefKey } from '@/lib/config';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
 
-export function LinterCard({resync}: {resync: () => void}) {
-  const [saving, setSaving] = useState(false);
+export function LinterCard({ resync }: { resync: () => void }) {
   const { config, setConfig } = useAppData();
   const lintServer = config.esLintConfig!;
+  const tabWidth = config.prettierConfig?.tabWidth || 4;
 
+  const [jsonOpen, setJsonOpen] = useState(false);
+  const [defaultMsg, setDefaultMsg] = useState('');
   const [linter, setLinter] = useState(lintServer.rules!);
-  useEffect(() => setLinter(lintServer.rules!), [lintServer.rules]);
+
+  const isDefault = useMemo(() => {
+    return objectEquals(linter, DefaultESLintOptions.rules);
+  }, [linter]);
+
+  useEffect(() => {
+    setLinter(lintServer.rules!);
+  }, [lintServer.rules]);
 
   const setLinterKey = useCallback(
     (key: string, value: RuleEntry) => {
@@ -46,22 +52,38 @@ export function LinterCard({resync}: {resync: () => void}) {
     [setLinter]
   );
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleJsonSave = (value: string) => {
+    const parsed = JSON.parse(value) as Record<string, RuleEntry>;
+    setLinter(parsed);
+  };
 
-    try {
-      setSaving(true);
-      await setPreference(eslintPrefKey, JSON.stringify(linter));
-
+  const saveMutation = useMutation({
+    mutationKey: ['lintConfigSave'],
+    mutationFn: () => setPreference(eslintPrefKey, JSON.stringify(linter)),
+    onSuccess: () => {
       const newLintConfig = { ...lintServer, rules: linter };
       setConfig({ esLintConfig: newLintConfig });
       toast.success('ESLint settings saved');
       resync();
-    } catch (error) {
-      errorHandler(error, 'Failed to save linter settings');
-    } finally {
-      setSaving(false);
-    }
+    },
+    onError: error => errorHandler(error, 'Failed to save linter settings'),
+  });
+
+  const openDefaultDialog = useCallback(() => {
+    setDefaultMsg(
+      'Are you sure you want to reset your ESLint settings to default? You will lose all custom configurations.'
+    );
+  }, []);
+
+  const setDefaultLinter = useCallback(() => {
+    setLinter(DefaultESLintOptions.rules!);
+    saveMutation.mutate();
+    setDefaultMsg('');
+  }, [saveMutation]);
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    saveMutation.mutate();
   };
 
   return (
@@ -70,13 +92,13 @@ export function LinterCard({resync}: {resync: () => void}) {
         <CardTitle>ES Lint Configuration</CardTitle>
         <CardDescription>Configure your ESLint settings below</CardDescription>
         <CardAction>
-          <SimpleTooltip content="View ESLint Documentation">
+          <SnSimpleTooltip content="View ESLint Documentation">
             <Button variant="ghost" size="icon" asChild>
               <Link to="https://eslint.org/docs/latest/rules/" target="_blank">
                 <ExternalLink />
               </Link>
             </Button>
-          </SimpleTooltip>
+          </SnSimpleTooltip>
         </CardAction>
       </CardHeader>
       <CardContent>
@@ -125,20 +147,38 @@ export function LinterCard({resync}: {resync: () => void}) {
           </div>
         </form>
       </CardContent>
-      <CardFooter className="flex-col gap-2 mt-auto">
-        <Button type="submit" className="w-full" form="linter-form" disabled={saving}>
-          {saving && (
-            <span className="flex items-center gap-2">
-              <LoadingSpinner /> Saving...
-            </span>
-          )}
-          {!saving && (
-            <span className="flex items-center gap-2">
-              <Save /> Save Changes
-            </span>
-          )}
-        </Button>
-      </CardFooter>
+      <SnCardFooter
+        formId="linter-form"
+        isDefault={isDefault}
+        isSaving={saveMutation.isPending}
+        onReset={openDefaultDialog}
+        onOpenJson={() => setJsonOpen(true)}
+      />
+      <SnGeneralConfirm
+        title="Reset ES Lint to Defaults"
+        msg={defaultMsg}
+        continueCb={setDefaultLinter}
+        cancelCb={() => setDefaultMsg('')}
+      ></SnGeneralConfirm>
+      <JsonDialog
+        open={jsonOpen}
+        setOpen={setJsonOpen}
+        json={linter ? JSON.stringify(linter, null, tabWidth) : ''}
+        setJson={handleJsonSave}
+        onSave={saveMutation.mutate}
+        title="ESLint Configuration"
+        description={
+          <div>
+            <div className="mb-2">
+              Here you can customise the raw ESLint rules in JSON. This gives you full configurability
+            </div>
+            <div>
+              <strong>Please note:</strong> Any rules you add which are not part of the default rule set will not show
+              in the UI, but the rules will be applied.
+            </div>
+          </div>
+        }
+      />
     </Card>
   );
 }

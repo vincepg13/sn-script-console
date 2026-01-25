@@ -2,10 +2,9 @@ import { patchRecord } from '@/lib/api';
 import { PackageData } from '@/types/app';
 import { PackageGroup } from './PackageGroup';
 import { PackageValue } from '@/types/package';
-import { useDebouncedFn } from '@/hooks/useDebounceFn';
+import { useAbortableController, useDebouncedFn } from 'sn-shadcn-kit/hooks';
 import { errorHandler, removeItemFromPackage } from '@/lib/utils';
-import { LoadingSpinner } from '@/components/generic/LoadingSpinner';
-import { useAbortableController } from '@/hooks/useAbortableController';
+import { SnLoadingSpinner } from 'sn-shadcn-kit/ui';
 import { useMemo, useState, useEffect, useCallback, startTransition, useDeferredValue } from 'react';
 
 
@@ -104,7 +103,7 @@ export function PackageMenu({ pkg, items, changing, resync, setPackage }: Packag
   if (changing) {
     return (
       <div className="flex gap-2 items-center px-4 py-2">
-        <LoadingSpinner className="size-4" />
+        <SnLoadingSpinner className="size-4" />
         <span className="text-sm text-muted-foreground">Loading package items...</span>
       </div>
     );
@@ -120,4 +119,3 @@ export function PackageMenu({ pkg, items, changing, resync, setPackage }: Packag
     />
   );
 }
-

@@ -1,5 +1,5 @@
 import { toast } from 'sonner';
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { errorHandler } from '@/lib/utils';
 import { packagePrefix } from '@/lib/config';
 import { Label } from '@/components/ui/label';
@@ -9,9 +9,9 @@ import { BadgePlus, Pencil } from 'lucide-react';
 import { ScriptPackages } from '@/types/package';
 import { useAppData } from '@/context/app-context';
 import { createPackage, patchRecord } from '@/lib/api';
-import { useQueryClient } from '@tanstack/react-query';
-import { useCancelableFn } from '@/hooks/useAbortableController';
-import { LoadingSpinner } from '@/components/generic/LoadingSpinner';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCancelableFn } from 'sn-shadcn-kit/hooks';
+import { SnLoadingSpinner } from 'sn-shadcn-kit/ui';
 import {
   Dialog,
   DialogContent,
@@ -44,7 +44,6 @@ export function NewPackageDialog({
   const isCreate = type === 'create';
   const idRef = useRef<HTMLInputElement>(null);
   const { config, setPackageData } = useAppData();
-  const [isCreating, setIsCreating] = useState(false);
 
   const onChangeName = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isCreate) return;
@@ -58,33 +57,34 @@ export function NewPackageDialog({
       : patchRecord('sys_user_preference', pkgGuid!, { description: name }, signal);
   });
 
-  const onCreatePackage = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const name = (formData.get('name')! as string).trim();
-    const id = idRef.current!.value;
-
-    try {
-      setIsCreating(true);
-      const res = await createPackageCancellable.run(id, name);
-      toast.success(`Package "${name}" created`);
+  const packageMutation = useMutation({
+    mutationKey: ['packageCreate', isCreate ? 'create' : 'rename', pkgGuid],
+    mutationFn: ({ id, name }: { id: string; name: string }) => createPackageCancellable.run(id, name),
+    onSuccess: (res, variables) => {
+      const actionLabel = isCreate ? 'created' : 'renamed';
+      toast.success(`Package "${variables.name}" ${actionLabel}`);
 
       if (isCreate)
         setPackageData({
           ...config.packageData,
-          currentPackage: id,
+          currentPackage: variables.id,
           packages: res.packages as ScriptPackages,
           packageItems: {},
         });
 
       qc.invalidateQueries({ queryKey: ['appConfig'] });
-      setCurrentPackage(id);
+      setCurrentPackage(variables.id);
       setOpen(false);
-    } catch (error) {
-      errorHandler(error, 'Failed to create package');
-    } finally {
-      setIsCreating(false);
-    }
+    },
+    onError: error => errorHandler(error, 'Failed to create package'),
+  });
+
+  const onCreatePackage = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const name = (formData.get('name')! as string).trim();
+    const id = idRef.current!.value;
+    packageMutation.mutate({ id, name });
   };
 
   return (
@@ -121,10 +121,10 @@ export function NewPackageDialog({
         </form>
 
         <DialogFooter>
-          <Button type="submit" form="new-package-form" className="w-full" disabled={isCreating}>
-            {isCreating ? (
+          <Button type="submit" form="new-package-form" className="w-full" disabled={packageMutation.isPending}>
+            {packageMutation.isPending ? (
               <>
-                <LoadingSpinner /> {isCreate ? 'Creating Package...' : 'Renaming Package...'}
+                <SnLoadingSpinner /> {isCreate ? 'Creating Package...' : 'Renaming Package...'}
               </>
             ) : (
               <>

@@ -1,6 +1,7 @@
 import { StatsRes } from '@/types/stats';
 import { ScriptSchema } from '@/types/script';
 import { getAxiosInstance } from 'sn-shadcn-kit';
+import axios from 'axios';
 import { ListRecords, ListRecordsSchema } from '@/types/list';
 import { PolicyActionData, PolicyActionResSchema, PolicySchema } from '@/types/policy';
 import { AppConfigSchema, ScopeUpdateSchema, UpdateSetSchema } from '@/types/app';
@@ -25,8 +26,9 @@ const packageApi = '/api/x_659318_script/console_package';
 
 type CloneRes = { guid: string; message: string };
 type MacroRes = { widgetId: string; uiFormatter: string; spFormatter: string };
-type MacroData = { formatter: string; macro: string; table: string; widget: string };
 type Dependency = { table: string; widget: string; dependency: string; linkTable: string };
+export type MacroData = { formatter: string; macro: string; table: string; widget: string };
+
 export type BatchItem = {
   id: string;
   url: string;
@@ -40,6 +42,16 @@ export async function getAppConfig(signal?: AbortSignal) {
   const response = await axios.get(`${coreApi}/app_config`, { signal });
 
   return AppConfigSchema.parse(response.data.result);
+}
+
+export async function getSessionToken(signal?: AbortSignal): Promise<string> {
+  const sessionAxios = axios.create({ withCredentials: true });
+  const response = await sessionAxios.get(`${coreApi}/session_token`, {
+    signal,
+    headers: { Accept: 'application/json' },
+  });
+
+  return response.data.result?.token ?? response.data.token ?? '';
 }
 
 export async function getTableData(table: string, query: string, page: number, pageSize: number, signal: AbortSignal) {

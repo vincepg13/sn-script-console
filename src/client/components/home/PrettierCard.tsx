@@ -1,36 +1,39 @@
 import { toast } from 'sonner';
 import { Link } from 'react-router';
 import { setPreference } from '@/lib/api';
+import { SnCardFooter } from './CardFooter';
 import { Checkbox } from '../ui/checkbox';
 import { errorHandler } from '@/lib/utils';
-import { ExternalLink, Save } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { ExternalLink } from 'lucide-react';
 import { useAppData } from '@/context/app-context';
-import { SimpleTooltip } from '../generic/SimpleTooltip';
-import { useCallback, useEffect, useState } from 'react';
-import { LoadingSpinner } from '../generic/LoadingSpinner';
+import { SnSimpleTooltip } from 'sn-shadcn-kit/ui';
+import { useMutation } from '@tanstack/react-query';
+import { objectEquals } from '@observ33r/object-equals';
+import { SnGeneralConfirm } from 'sn-shadcn-kit/ui';
+import { JsonDialog } from '../generic/JsonDialog';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { DefaultPrettierOptions } from '@/types/defaults';
 import { ObjectWrap, PrettierConfig, TrailingComma } from '@/types/script';
 import { commaOptions, objectWrapOptions, prettierPrefKey } from '@/lib/config';
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 
-export function PrettierCard({resync}: {resync: () => void}) {
-  const [saving, setSaving] = useState(false);
+export function PrettierCard({ resync }: { resync: () => void }) {
   const { config, setConfig } = useAppData();
   const pcServer = config.prettierConfig!;
+  const tabWidth = config.prettierConfig?.tabWidth || 4;
 
+  const [jsonOpen, setJsonOpen] = useState(false);
+  const [defaultMsg, setDefaultMsg] = useState('');
   const [prettier, setPrettier] = useState<PrettierConfig>(pcServer);
   useEffect(() => setPrettier(pcServer), [pcServer]);
+
+  const isDefault = useMemo(() => {
+    return objectEquals(prettier, DefaultPrettierOptions);
+  }, [prettier]);
 
   const setPrettierKey = useCallback(
     <K extends keyof PrettierConfig>(key: K, value: PrettierConfig[K]) => {
@@ -39,20 +42,37 @@ export function PrettierCard({resync}: {resync: () => void}) {
     [setPrettier]
   );
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleJsonSave = (value: string) => {
+    const parsed = JSON.parse(value) as PrettierConfig;
+    setPrettier(parsed);
+  };
 
-    try {
-      setSaving(true);
-      await setPreference(prettierPrefKey, JSON.stringify(prettier));
+  const saveMutation = useMutation({
+    mutationKey: ['prettierConfigSave'],
+    mutationFn: () => setPreference(prettierPrefKey, JSON.stringify(prettier)),
+    onSuccess: () => {
       setConfig({ prettierConfig: prettier });
       toast.success('Prettier settings saved');
       resync();
-    } catch (error) {
-      errorHandler(error, 'Failed to save prettier settings');
-    } finally {
-      setSaving(false);
-    }
+    },
+    onError: error => errorHandler(error, 'Failed to save prettier settings'),
+  });
+
+  const openDefaultDialog = useCallback(() => {
+    setDefaultMsg(
+      'Are you sure you want to reset your Prettier settings to default? You will lose all custom configurations.'
+    );
+  }, []);
+
+  const setDefaultPrettier = useCallback(() => {
+    setPrettier(DefaultPrettierOptions);
+    saveMutation.mutate();
+    setDefaultMsg('');
+  }, [saveMutation]);
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    saveMutation.mutate();
   };
 
   return (
@@ -61,13 +81,13 @@ export function PrettierCard({resync}: {resync: () => void}) {
         <CardTitle>Prettier Configuration</CardTitle>
         <CardDescription>Configure your Prettier settings below</CardDescription>
         <CardAction>
-          <SimpleTooltip content="View Prettier Documentation">
+          <SnSimpleTooltip content="View Prettier Documentation">
             <Button variant="ghost" size="icon" asChild>
               <Link to="https://prettier.io/docs/en/options.html" target="_blank">
                 <ExternalLink />
               </Link>
             </Button>
-          </SimpleTooltip>
+          </SnSimpleTooltip>
         </CardAction>
       </CardHeader>
       <CardContent>
@@ -142,20 +162,38 @@ export function PrettierCard({resync}: {resync: () => void}) {
           </div>
         </form>
       </CardContent>
-      <CardFooter className="flex-col gap-2 mt-auto">
-        <Button type="submit" className="w-full" form="prettier-form" disabled={saving}>
-          {saving && (
-            <span className="flex items-center gap-2">
-              <LoadingSpinner /> Saving...
-            </span>
-          )}
-          {!saving && (
-            <span className="flex items-center gap-2">
-              <Save /> Save Changes
-            </span>
-          )}
-        </Button>
-      </CardFooter>
+      <SnCardFooter
+        formId="prettier-form"
+        isDefault={isDefault}
+        isSaving={saveMutation.isPending}
+        onReset={openDefaultDialog}
+        onOpenJson={() => setJsonOpen(true)}
+      />
+      <SnGeneralConfirm
+        title="Reset Prettier to Defaults"
+        msg={defaultMsg}
+        continueCb={setDefaultPrettier}
+        cancelCb={() => setDefaultMsg('')}
+      ></SnGeneralConfirm>
+      <JsonDialog
+        open={jsonOpen}
+        setOpen={setJsonOpen}
+        json={prettier ? JSON.stringify(prettier, null, tabWidth) : ''}
+        setJson={handleJsonSave}
+        onSave={saveMutation.mutate}
+        title="Prettier Configuration"
+        description={
+          <div>
+            <div className="mb-2">
+              Here you can customise the raw Prettier options in JSON. This gives you full configurability.
+            </div>
+            <div>
+              <strong>Please note:</strong> Options you add which are not part of the default rule set will not show in
+              the UI, but the options will be applied.
+            </div>
+          </div>
+        }
+      />
     </Card>
   );
 }

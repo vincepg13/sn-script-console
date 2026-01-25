@@ -3,7 +3,7 @@ import { normalize, useScript } from '@/context/script-context';
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { setEsVersion, SnScriptEditor, SnScriptFieldType } from 'sn-shadcn-kit/script';
 import { ExternalChangesDialog } from '../generic/ExternalChangesDialog';
-import { useSlashPrevention } from '@/hooks/useSlashPrevention';
+import { useSlashPrevention } from 'sn-shadcn-kit/hooks';
 
 export function ScriptField() {
   const {

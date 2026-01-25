@@ -5,12 +5,12 @@ import { errorHandler, removeItemFromPackage } from '@/lib/utils';
 import { useLocation } from 'react-router';
 import { useEffect, useState } from 'react';
 import { PackageValue } from '@/types/package';
-import { SimpleTooltip } from './SimpleTooltip';
-import { LoadingSpinner } from './LoadingSpinner';
+import { SnSimpleTooltip } from 'sn-shadcn-kit/ui';
+import { SnLoadingSpinner } from 'sn-shadcn-kit/ui';
 import { useAppData } from '@/context/app-context';
 import { addToPackage } from '@/lib/api';
 import { PackageMinus, PackagePlus } from 'lucide-react';
-import { useAbortableController } from '../../hooks/useAbortableController';
+import { useAbortableController } from 'sn-shadcn-kit/hooks';
 import { useQueryClient } from '@tanstack/react-query';
 
 type LocalVariant = 'outline' | 'secondary' | 'ghost' | null;
@@ -94,11 +94,11 @@ function AddToPackage({ table, variant, currentPackage, path, onAdded, getSignal
   };
 
   return (
-    <SimpleTooltip content="Add to Package">
+    <SnSimpleTooltip content="Add to Package">
       <Button variant={variant} size="icon" onClick={addPackageItem} disabled={saving}>
-        {saving ? <LoadingSpinner /> : <PackagePlus className="size-5" />}
+        {saving ? <SnLoadingSpinner /> : <PackagePlus className="size-5" />}
       </Button>
-    </SimpleTooltip>
+    </SnSimpleTooltip>
   );
 }
 
@@ -118,10 +118,10 @@ function RemoveFromPackage({ table, path, pkg, onRemove, getSignal }: RemoveFrom
   };
 
   return (
-    <SimpleTooltip content="Remove from Package">
+    <SnSimpleTooltip content="Remove from Package">
       <Button variant="trash" size="icon" disabled={removing} onClick={removePackageItem}>
-        {removing ? <LoadingSpinner /> : <PackageMinus className="size-5" />}
+        {removing ? <SnLoadingSpinner /> : <PackageMinus className="size-5" />}
       </Button>
-    </SimpleTooltip>
+    </SnSimpleTooltip>
   );
 }

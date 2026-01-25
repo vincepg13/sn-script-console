@@ -8,7 +8,7 @@ import { depTableMap } from '@/lib/config';
 import { Dependency } from '@/types/widget';
 import { useWidget } from '@/context/widget-context';
 import { useLiveCounts } from './hooks/useLiveCounts';
-import { LoadingSpinner } from '../generic/LoadingSpinner';
+import { SnLoadingSpinner } from 'sn-shadcn-kit/ui';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Clock, Settings, Trash, Upload } from 'lucide-react';
 import { Popover, PopoverTrigger, PopoverContent } from '../ui/popover';
@@ -192,7 +192,7 @@ function DepListItem({ label, desc, items, table, field, isLoading, openDep }: D
       <div className="text-sm leading-none font-medium flex justify-between items-center">
         <div>{label}</div>
         <div>
-          {isLoading && <LoadingSpinner />}
+          {isLoading && <SnLoadingSpinner />}
           {!isLoading && !!items && (
             <Badge className="h-5 min-w-5 rounded-full px-1 font-mono tabular-nums">{items}</Badge>
           )}
@@ -282,7 +282,7 @@ function DepSheet({ widget, table, dependencies, editable, addCallback, removeCa
                 <div className="shrink-0">
                   <Button variant="destructive" size="icon" onClick={e => processRemoval(e, dep.depId)}>
                     {removalItem === dep.depId ? (
-                      <LoadingSpinner className="h-4 w-4 text-white" />
+                      <SnLoadingSpinner className="h-4 w-4 text-white" />
                     ) : (
                       <Trash className="h-4 w-4" />
                     )}
@@ -335,7 +335,7 @@ function DepSheet({ widget, table, dependencies, editable, addCallback, removeCa
                   onClick={() => processAddition(newDep!.value)}
                 >
                   {adding ? (
-                    <LoadingSpinner className="h-4 w-4 text-primary-foreground" />
+                    <SnLoadingSpinner className="h-4 w-4 text-primary-foreground" />
                   ) : (
                     <Upload className="h-4 w-4" />
                   )}

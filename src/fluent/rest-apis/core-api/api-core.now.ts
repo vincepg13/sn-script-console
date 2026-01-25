@@ -87,5 +87,15 @@ RestApi({
       produces: 'application/json,application/xml,text/xml',
       path: '/global_method/{name}',
     },
+    {
+      $id: Now.ID['sc-core-session-token'],
+      name: 'Get Session Token',
+      method: 'GET',
+      script: Now.include('./session-token.server.js'),
+      consumes: 'application/json',
+      produces: 'application/json,application/xml,text/xml',
+      path: '/session_token',
+      authentication: false,
+    },
   ],
 });

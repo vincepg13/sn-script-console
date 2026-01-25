@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ModifyPackage } from '../generic/ModifyPackage';
 import { SnRecordPickerItem, SnRecordPicker } from 'sn-shadcn-kit/standalone';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { LoadingSpinner } from '../generic/LoadingSpinner';
+import { SnLoadingSpinner } from 'sn-shadcn-kit/ui';
 
 //Transform scriptTables into an array of objects with table and label properties and sort alphabetically by label
 function transformTables(tables: ScriptTableItems) {
@@ -69,7 +69,7 @@ export function ScriptPickers({ table, guid, display }: { table: string; guid: s
         />
       </div>
       <ModifyPackage table={table} />
-      {isFetching && <LoadingSpinner />}
+      {isFetching && <SnLoadingSpinner />}
     </div>
   );
 }
